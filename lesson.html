@@ -56,10 +56,7 @@
         .quiz-options label.incorrect { border-color: var(--error-red); background: #fff5f5; }
         .quiz-section button { background: var(--accent-gold); color: var(--bg-slate); border: none; padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; transition: background-color 0.3s; margin-top: 16px; }
         .quiz-section button:hover { background: #b88b2a; }
-        .feedback {
-            margin-top: 16px; padding: 12px; border-radius: 6px;
-            font-weight: 500; display: flex; align-items: center; gap: 8px;
-        }
+        .feedback { margin-top: 16px; padding: 12px; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
         .feedback.correct { color: var(--success-green); background-color: #f0fff4; border-left: 4px solid var(--success-green); }
         .feedback.incorrect { color: var(--error-red); background-color: #fff5f5; border-left: 4px solid var(--error-red); }
         #lesson-spark { margin-top: 48px; padding: 24px; background: var(--bg-slate); color: var(--panel-cream); border-radius: 8px; border-left: 4px solid var(--accent-gold); }
@@ -83,7 +80,10 @@
     <footer><p>© 2025 Boluadeoye • Crafted with passion</p></footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- 1. ALL HELPER FUNCTIONS ARE DEFINED FIRST ---
+
             const fetchDatabase = async () => {
                 try {
                     const response = await fetch('./academy-data.json');
@@ -106,7 +106,6 @@
 
                 const isCorrect = selected.value === interaction.correctAnswer;
                 
-                // --- NEW: Restore and Enhance Feedback Message ---
                 const feedbackEl = document.createElement('div');
                 feedbackEl.className = 'feedback';
 
@@ -120,7 +119,6 @@
                     feedbackEl.innerHTML = `<i data-feather="x-circle"></i> <strong>Not quite.</strong> ${interaction.explanation}`;
                 }
 
-                // Color the selected labels
                 optionsDiv.querySelectorAll('label').forEach(label => {
                     const radio = label.querySelector('input');
                     if (radio.value === interaction.correctAnswer) label.classList.add('correct');
@@ -170,22 +168,66 @@
                 }
             };
 
-            const renderPrerequisites = (prereqs, db) => { /* ... unchanged ... */ };
-            const renderNextLesson = (unlocks, db, currentTopicId) => { /* ... unchanged ... */ };
-            const renderLesson = async (topicId, db) => { /* ... unchanged ... */ };
+            const renderPrerequisites = (prereqs, db) => {
+                const container = document.getElementById('prerequisites-container');
+                if (!prereqs || prereqs.length === 0) { container.innerHTML = ''; return; }
+                let linksHTML = prereqs.map(id => db[id] ? `<a href="lesson.html?id=${id}">${db[id].title}</a>` : '').join(', ');
+                if (linksHTML) {
+                    container.innerHTML = `<div class="nav-box"><h3>Before You Begin</h3><p>This lesson builds on: ${linksHTML}</p></div>`;
+                }
+            };
+            
+            const renderNextLesson = (unlocks, db, currentTopicId) => {
+                const container = document.getElementById('next-lesson-container');
+                const completed = JSON.parse(localStorage.getItem('academyProgress')) || [];
+                if (!unlocks || unlocks.length === 0 || !completed.includes(currentTopicId)) { 
+                    container.innerHTML = ''; 
+                    return; 
+                }
+                const nextTopic = db[unlocks[0]];
+                if (nextTopic) {
+                    container.innerHTML = `<a href="lesson.html?id=${nextTopic.id}">Continue Your Journey →<br><small>${nextTopic.title}</small></a>`;
+                }
+            };
 
-            // --- Unchanged helper functions for brevity in this view, but included in full code block ---
-            renderPrerequisites = (prereqs, db) => { const c = document.getElementById('prerequisites-container'); if (!prereqs || prereqs.length === 0) { c.innerHTML = ''; return; } let l = prereqs.map(id => db[id] ? `<a href="lesson.html?id=${id}">${db[id].title}</a>` : '').join(', '); if (l) { c.innerHTML = `<div class="nav-box"><h3>Before You Begin</h3><p>This lesson builds on: ${l}</p></div>`; } };
-            renderNextLesson = (unlocks, db, currentTopicId) => { const c = document.getElementById('next-lesson-container'); const comp = JSON.parse(localStorage.getItem('academyProgress')) || []; if (!unlocks || unlocks.length === 0 || !comp.includes(currentTopicId)) { c.innerHTML = ''; return; } const next = db[unlocks[0]]; if (next) { c.innerHTML = `<a href="lesson.html?id=${next.id}">Continue Your Journey →<br><small>${next.title}</small></a>`; } };
-            renderLesson = async (topicId, db) => { const topic = db[topicId]; if (!topic) { return; } const headerTarget = document.getElementById('lesson-header'); headerTarget.innerHTML = `<h1>${topic.title}</h1><p class="summary">${topic.summary}</p><div class="metadata"><span class="difficulty difficulty-${topic.difficulty.toLowerCase()}"><i data-feather="bar-chart-2"></i> ${topic.difficulty}</span><span><i data-feather="clock"></i> ${topic.estimatedTime} mins</span></div>`; const contentTarget = document.getElementById('lesson-content'); contentTarget.innerHTML = ''; if (topic.contentFile) { try { const response = await fetch(`lessons/${topic.contentFile}`); const markdownText = await response.text(); contentTarget.innerHTML = marked.parse(markdownText); } catch (error) { contentTarget.innerHTML = '<p>Could not load lesson content.</p>'; } } if (topic.contentSections && topic.contentSections.length > 0) { topic.contentSections.forEach(section => contentTarget.appendChild(sectionRenderers.quiz(section, topicId, db))); } renderPrerequisites(topic.prerequisites, db); renderNextLesson(topic.unlocks, db, topicId); const sparkTarget = document.getElementById('lesson-spark'); if (topic.insightSpark) { sparkTarget.innerHTML = `<h3>✨ Insight Spark</h3><p>${topic.insightSpark}</p>`; } };
+            const renderLesson = async (topicId, db) => {
+                const topic = db[topicId];
+                if (!topic) { return; }
+                const headerTarget = document.getElementById('lesson-header');
+                headerTarget.innerHTML = `<h1>${topic.title}</h1><p class="summary">${topic.summary}</p><div class="metadata"><span class="difficulty difficulty-${topic.difficulty.toLowerCase()}"><i data-feather="bar-chart-2"></i> ${topic.difficulty}</span><span><i data-feather="clock"></i> ${topic.estimatedTime} mins</span></div>`;
+                const contentTarget = document.getElementById('lesson-content');
+                contentTarget.innerHTML = '';
+                if (topic.contentFile) {
+                    try {
+                        const response = await fetch(`lessons/${topic.contentFile}`);
+                        const markdownText = await response.text();
+                        contentTarget.innerHTML = marked.parse(markdownText);
+                    } catch (error) { contentTarget.innerHTML = '<p>Could not load lesson content.</p>'; }
+                }
+                if (topic.contentSections && topic.contentSections.length > 0) {
+                    topic.contentSections.forEach(section => contentTarget.appendChild(sectionRenderers.quiz(section, topicId, db)));
+                }
+                renderPrerequisites(topic.prerequisites, db);
+                renderNextLesson(topic.unlocks, db, topicId);
+                const sparkTarget = document.getElementById('lesson-spark');
+                if (topic.insightSpark) { sparkTarget.innerHTML = `<h3>✨ Insight Spark</h3><p>${topic.insightSpark}</p>`; }
+            };
 
-            // --- INITIALIZATION ---
-            const db = await fetchDatabase();
-            if (!db) { document.getElementById('lesson-header').innerHTML = '<h1>Error: Could not load data.</h1>'; return; }
-            const params = new URLSearchParams(window.location.search);
-            const topicId = params.get('id') || 'gram001';
-            await renderLesson(topicId, db);
-            feather.replace({ 'stroke-width': 1.5, width: 18, height: 18 });
+            // --- 2. THE MAIN INITIALIZATION FUNCTION ---
+            const initialize = async () => {
+                const db = await fetchDatabase();
+                if (!db) { 
+                    document.getElementById('lesson-header').innerHTML = '<h1>Error: Could not load data.</h1>'; 
+                    return; 
+                }
+                const params = new URLSearchParams(window.location.search);
+                const topicId = params.get('id') || 'gram001';
+                await renderLesson(topicId, db);
+                feather.replace({ 'stroke-width': 1.5, width: 18, height: 18 });
+            };
+
+            // --- 3. RUN INITIALIZATION ---
+            initialize();
         });
     </script>
 </body>
