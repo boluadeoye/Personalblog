@@ -95,9 +95,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const fetchDatabase = async () => { /* ... same as before ... */ };
-            const initializeHomepage = async () => { /* ... same as before ... */ };
-            
             const viewDetails = {
                 scriptorium: { title: "The Scriptorium", subtitle: "The library for grammar, syntax, and core foundations.", filter: (t) => t.category === 'English Language', icon: 'book-open' },
                 lyceum: { title: "The Lyceum", subtitle: "Deep dives into the advanced art of prose and storytelling.", filter: (t) => t.category === 'Literature', icon: 'feather' },
@@ -106,21 +103,32 @@
 
             const getCompletedLessons = () => JSON.parse(localStorage.getItem('academyProgress')) || [];
 
+            const fetchDatabase = async () => {
+                try {
+                    const response = await fetch('./academy-data.json');
+                    if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+                    const data = await response.json();
+                    return data.topics;
+                } catch (error) {
+                    console.error('Failed to load the academy database:', error);
+                    return null;
+                }
+            };
+
             const renderHomepage = (topics, view) => {
                 const hubContent = document.getElementById('hub-content');
-                if (!topics) {
-                    hubContent.innerHTML = `<p style="text-align: center; color: var(--error-red);"><strong>Failed to load lessons.</strong></p>`;
-                    return;
-                }
                 const details = viewDetails[view] || viewDetails.default;
                 document.getElementById('hero-title').textContent = details.title;
                 document.getElementById('hero-subtitle').textContent = details.subtitle;
+                
                 const completedLessons = getCompletedLessons();
                 const filteredTopics = Object.values(topics).filter(details.filter);
+
                 if (filteredTopics.length === 0) {
                     hubContent.innerHTML = '<p style="text-align: center;">No lessons found for this section yet.</p>';
                     return;
                 }
+
                 const groupedByCategory = filteredTopics.reduce((acc, topic) => {
                     const category = topic.category || 'Uncategorized';
                     if (!acc[category]) { acc[category] = []; }
@@ -172,13 +180,22 @@
                 hubContent.innerHTML = '';
                 hubContent.appendChild(fragment);
                 
-                // Call feather.replace() after new icons are added to the DOM
                 feather.replace({ 'stroke-width': 2, width: 24, height: 24 });
                 document.querySelectorAll('.icon-small').forEach(el => feather.replace({ 'stroke-width': 2, width: 16, height: 16 }));
             };
 
-            fetchDatabase = async () => { try { const r = await fetch('./academy-data.json'); if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`); return (await r.json()).topics; } catch (e) { console.error('Failed to load db:', e); return null; } };
-            initializeHomepage = async () => { const t = await fetchDatabase(); if (!t) { document.getElementById('hub-content').innerHTML = `<p style="text-align: center; color: var(--error-red);"><strong>Failed to load lessons.</strong><br>Please ensure the 'academy-data.json' file exists and is valid.</p>`; return; } const p = new URLSearchParams(window.location.search); const v = p.get('view') || 'default'; renderHomepage(t, v); };
+            const initializeHomepage = async () => {
+                const hubContent = document.getElementById('hub-content');
+                const topics = await fetchDatabase();
+                if (!topics) {
+                    hubContent.innerHTML = `<p style="text-align: center; color: var(--error-red);"><strong>Failed to load lessons.</strong><br>Please ensure the 'academy-data.json' file exists and is valid.</p>`;
+                    return;
+                }
+                const params = new URLSearchParams(window.location.search);
+                const view = params.get('view') || 'default';
+                renderHomepage(topics, view);
+            };
+
             initializeHomepage();
         });
     </script>
