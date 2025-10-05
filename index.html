@@ -52,36 +52,27 @@
             justify-content: space-between; font-size: 14px; color: var(--accent-ink); font-weight: 500;
         }
         @media (max-width: 768px) {
-            .hero h1 { font-size: 36px; }
-            .hero p { font-size: 16px; }
-            .lesson-grid { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 36px; } .hero p { font-size: 16px; } .lesson-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <header>
         <a href="./academy.html" class="exit-link" title="Return to The Academy Hub">
-             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-            </svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </a>
         <div class="brand-group">
-            <svg class="logo" viewBox="0 0 24 24">
-                <path d="M12 2 L2 22 H22 Z M12 6 L18.3 18 H5.7 Z" fill="var(--accent-gold)"/>
-            </svg>
+            <svg class="logo" viewBox="0 0 24 24"><path d="M12 2 L2 22 H22 Z M12 6 L18.3 18 H5.7 Z" fill="var(--accent-gold)"/></svg>
             <span class="brand-text">The Academy</span>
         </div>
     </header>
 
     <main>
         <section class="hero">
-            <h1>The Scriptorium</h1>
-            <p>This is the complete library of all lessons available in The Writer's Academy. Explore by category and begin your journey to mastery.</p>
+            <h1 id="hero-title">The Scriptorium</h1>
+            <p id="hero-subtitle">This is the complete library of all lessons available in The Writer's Academy. Explore by category and begin your journey to mastery.</p>
         </section>
-
-        <div id="hub-content">
-            </div>
+        <div id="hub-content"></div>
     </main>
 
     <footer>
@@ -90,29 +81,56 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- NEW: VIEW DEFINITIONS ---
+            const viewDetails = {
+                scriptorium: {
+                    title: "The Scriptorium",
+                    subtitle: "The complete library for grammar, syntax, and the core foundations of writing.",
+                    filter: (topic) => topic.category === 'English Language'
+                },
+                lyceum: {
+                    title: "The Lyceum",
+                    subtitle: "Deep dives into the advanced art of prose, storytelling, and literary devices.",
+                    filter: (topic) => topic.category === 'Literature'
+                },
+                default: {
+                    title: "The Full Library",
+                    subtitle: "All lessons available in The Writer's Academy.",
+                    filter: (topic) => true // Show all
+                }
+            };
+            
             const fetchDatabase = async () => {
                 try {
                     const response = await fetch('academy-data.json');
-                    if (!response.ok) { throw new Error('Network response was not ok ' + response.statusText); }
+                    if (!response.ok) { throw new Error('Network response was not ok'); }
                     const data = await response.json();
                     return data.topics;
-                } catch (error) {
-                    console.error('Failed to load the academy database:', error);
-                    return null;
-                }
+                } catch (error) { console.error('Failed to load the academy database:', error); return null; }
             };
-            const renderHomepage = (topics) => {
+
+            const renderHomepage = (topics, view) => {
                 const hubContent = document.getElementById('hub-content');
-                if (!topics) {
-                    hubContent.innerHTML = '<p>Error loading lessons.</p>';
+                if (!topics) { hubContent.innerHTML = '<p>Error loading lessons.</p>'; return; }
+
+                // --- NEW: Update Hero and Filter Topics ---
+                const details = viewDetails[view] || viewDetails.default;
+                document.getElementById('hero-title').textContent = details.title;
+                document.getElementById('hero-subtitle').textContent = details.subtitle;
+                const filteredTopics = Object.values(topics).filter(details.filter);
+
+                if (filteredTopics.length === 0) {
+                    hubContent.innerHTML = '<p>No lessons found for this section yet.</p>';
                     return;
                 }
-                const groupedByCategory = Object.values(topics).reduce((acc, topic) => {
+
+                const groupedByCategory = filteredTopics.reduce((acc, topic) => {
                     const category = topic.category || 'Uncategorized';
                     if (!acc[category]) { acc[category] = []; }
                     acc[category].push(topic);
                     return acc;
                 }, {});
+
                 const fragment = document.createDocumentFragment();
                 for (const [category, lessonList] of Object.entries(groupedByCategory)) {
                     const section = document.createElement('section');
@@ -127,26 +145,25 @@
                         card.className = 'lesson-card';
                         card.href = `lesson.html?id=${topic.id}`;
                         card.innerHTML = `
-                            <div class="card-content">
-                                <h3>${topic.title}</h3>
-                                <p>${topic.summary}</p>
-                            </div>
-                            <div class="card-footer">
-                                <span>${topic.difficulty}</span>
-                                <span>${topic.estimatedTime} mins</span>
-                            </div>
-                        `;
+                            <div class="card-content"><h3>${topic.title}</h3><p>${topic.summary}</p></div>
+                            <div class="card-footer"><span>${topic.difficulty}</span><span>${topic.estimatedTime} mins</span></div>`;
                         grid.appendChild(card);
                     });
                     section.appendChild(grid);
                     fragment.appendChild(section);
                 }
+                hubContent.innerHTML = ''; // Clear before appending
                 hubContent.appendChild(fragment);
             };
+
             const initializeHomepage = async () => {
+                // --- NEW: Get view from URL ---
+                const params = new URLSearchParams(window.location.search);
+                const view = params.get('view') || 'default';
                 const topics = await fetchDatabase();
-                renderHomepage(topics);
+                renderHomepage(topics, view);
             };
+
             initializeHomepage();
         });
     </script>
