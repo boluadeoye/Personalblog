@@ -43,9 +43,10 @@
             display: flex; justify-content: space-between; align-items: center;
             height: 64px; max-width: 1200px; margin: 0 auto; padding: 0 16px;
         }
-        .nav-brand { display: flex; align-items: center; gap: 8px; }
-        .nav-brand svg { width: 32px; height: 32px; stroke: var(--accent-gold); stroke-width: 2; fill: none; }
-        .nav-brand h2 { font-family: var(--font-ui); font-size: 1.5rem; color: var(--panel-cream); margin: 0; font-weight: 700; }
+        .nav-brand { display: flex; align-items: center; justify-content: center; flex-grow: 1; }
+        .nav-brand svg { width: 32px; height: 32px; }
+        .nav-brand h2 { font-family: var(--font-ui); font-size: 1.5rem; color: var(--panel-cream); margin: 0 0 0 8px; font-weight: 700; }
+        .nav-exit-link { position: absolute; left: 16px; }
         .nav-exit-link svg { width: 24px; height: 24px; stroke: var(--accent-ink); stroke-width: 1.5; transition: stroke 200ms; }
         .nav-exit-link:hover svg { stroke: var(--accent-gold); }
         #rhythm-lab {
@@ -139,7 +140,6 @@
             stroke: var(--accent-gold);
             stroke-width: 2;
             fill: none;
-            /* SURGICAL EDIT: ADDED TRANSITION */
             transition: d 300ms cubic-bezier(0.4, 0, 0.2, 1);
         }
         @media (max-width: 768px) {
@@ -158,8 +158,8 @@
                 </svg>
             </a>
             <div class="nav-brand">
-                <svg viewBox="0 0 32 32">
-                    <path d="M8 24 Q10 20 12 16 Q14 12 16 8 Q18 12 20 16 Q22 20 24 24 M16 8 V4 M16 4 L12 6 M16 4 L20 6" stroke="var(--accent-gold)" stroke-width="2" fill="none"/>
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2 L2 22 H22 Z M12 6 L18.3 18 H5.7 Z" fill="var(--accent-gold)"/>
                 </svg>
                 <h2>The Academy</h2>
             </div>
