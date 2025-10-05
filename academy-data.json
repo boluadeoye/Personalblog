@@ -1,0 +1,50 @@
+{
+  "topics": {
+    "gram001": {
+      "id": "gram001",
+      "title": "Mastering Subject-Verb Agreement",
+      "category": "English Language",
+      "tags": ["grammar", "foundations", "syntax", "core skills"],
+      "summary": "Learn the foundational rule of English syntax: making subjects and verbs agree in number. This lesson is essential for clear and professional writing.",
+      "difficulty": "Beginner",
+      "estimatedTime": 15,
+      "learningObjectives": [
+        "Identify the subject and verb in any sentence.",
+        "Apply the core rules of subject-verb agreement.",
+        "Recognize and correct common agreement errors."
+      ],
+      "contentFile": "gram001-sva-basics.md",
+      "assets": [{
+        "type": "image",
+        "url": "https://via.placeholder.com/700x150",
+        "caption": "A simple diagram showing the link between a subject and its verb."
+      }],
+      "contentSections": [{
+        "sectionType": "quiz",
+        "content": "<h3>Knowledge Check</h3><p>Time to test your understanding. Choose the correct verb for each sentence.</p>",
+        "interactions": [{
+          "id": "q1",
+          "prompt": "The pack of wolves ___ to the moon.",
+          "type": "multiple-choice",
+          "options": ["howl", "howls"],
+          "correctAnswer": "howls",
+          "explanation": "The subject is 'pack' (singular), not 'wolves'. Therefore, the singular verb 'howls' is correct."
+        }, {
+          "id": "q2",
+          "prompt": "Either my shoes or your coat ___ always on the floor.",
+          "type": "multiple-choice",
+          "options": ["is", "are"],
+          "correctAnswer": "is",
+          "explanation": "When subjects are joined by 'or', the verb agrees with the subject closer to it. 'Coat' is singular, so we use 'is'."
+        }]
+      }],
+      "prerequisites": [],
+      "unlocks": ["gram002"],
+      "related": [],
+      "type": "lesson",
+      "insightSpark": "Find a paragraph in a book you're reading. Can you spot a sentence where the subject-verb agreement is complex? Why does it work?",
+      "author": "Boluadeoye",
+      "lastUpdated": "2025-10-05"
+    }
+  }
+}
