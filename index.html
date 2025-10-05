@@ -9,23 +9,12 @@
         :root {
             --bg-slate: #2D3748; --panel-cream: #F7FAFC; --accent-gold: #D69E2E; --accent-ink: #6A7A94;
             --text-dark: #2D3748; --text-muted: #718096; --font-body: 'Lora', serif; --font-ui: 'Inter', sans-serif;
-            --success-green: #38A169;
+            --success-green: #38A169; --error-red: #E53E3E;
         }
-        /* ... All other CSS is the same, with two additions below ... */
-        .lesson-card {
-            /* ... same as before ... */
-            position: relative; /* Needed for checkmark positioning */
-        }
-        .lesson-card.is-completed {
-            border-left: 4px solid var(--success-green);
-        }
-        .checkmark {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            font-size: 24px;
-            color: var(--success-green);
-        }
+        .lesson-card { position: relative; }
+        .lesson-card.is-completed { border-left: 4px solid var(--success-green); }
+        .checkmark { position: absolute; top: 12px; right: 12px; font-size: 24px; color: var(--success-green); }
+        /* ... rest of CSS is unchanged ... */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: var(--panel-cream); font-family: var(--font-ui); color: var(--text-dark); line-height: 1.6; }
         a { text-decoration: none; color: inherit; }
@@ -55,91 +44,72 @@
 </head>
 <body>
     <header>
-        <a href="./academy.html" class="exit-link" title="Return to The Academy Hub">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        </a>
-        <div class="brand-group">
-            <svg class="logo" viewBox="0 0 24 24"><path d="M12 2 L2 22 H22 Z M12 6 L18.3 18 H5.7 Z" fill="var(--accent-gold)"/></svg>
-            <span class="brand-text">The Academy</span>
-        </div>
+        <a href="./academy.html" class="exit-link" title="Return to The Academy Hub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg></a>
+        <div class="brand-group"><svg class="logo" viewBox="0 0 24 24"><path d="M12 2 L2 22 H22 Z M12 6 L18.3 18 H5.7 Z" fill="var(--accent-gold)"/></svg><span class="brand-text">The Academy</span></div>
     </header>
     <main>
-        <section class="hero">
-            <h1 id="hero-title">The Scriptorium</h1>
-            <p id="hero-subtitle">This is the complete library of all lessons available in The Writer's Academy. Explore by category and begin your journey to mastery.</p>
-        </section>
+        <section class="hero"><h1 id="hero-title">The Scriptorium</h1><p id="hero-subtitle">This is the complete library of all lessons available in The Writer's Academy.</p></section>
         <div id="hub-content"></div>
     </main>
-    <footer>
-        <p>© 2025 Boluadeoye • Crafted with passion</p>
-    </footer>
-
+    <footer><p>© 2025 Boluadeoye • Crafted with passion</p></footer>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const viewDetails = { /* ... same as before ... */ };
-            const fetchDatabase = async () => { /* ... same as before ... */ };
-
-            // --- NEW: FUNCTION TO GET PROGRESS ---
-            const getCompletedLessons = () => {
-                return JSON.parse(localStorage.getItem('academyProgress')) || [];
+            const fetchDatabase = async () => {
+                try {
+                    // --- EDIT: Made the file path more explicit ---
+                    const response = await fetch('./academy-data.json');
+                    if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+                    const data = await response.json();
+                    return data.topics;
+                } catch (error) {
+                    console.error('Failed to load the academy database:', error);
+                    return null; // Return null on failure
+                }
             };
 
-            const renderHomepage = (topics, view) => {
+            const initializeHomepage = async () => {
                 const hubContent = document.getElementById('hub-content');
-                if (!topics) { hubContent.innerHTML = '<p>Error loading lessons.</p>'; return; }
+                const topics = await fetchDatabase();
+
+                // --- EDIT: Added a user-friendly error message if fetch fails ---
+                if (!topics) {
+                    hubContent.innerHTML = `<p style="text-align: center; color: var(--error-red);"><strong>Failed to load lessons.</strong><br>Please ensure the 'academy-data.json' file exists in your repository and contains no errors.</p>`;
+                    return;
+                }
+                
+                const viewDetails = { scriptorium: { title: "The Scriptorium", subtitle: "The library for grammar, syntax, and core foundations.", filter: (t) => t.category === 'English Language' }, lyceum: { title: "The Lyceum", subtitle: "Deep dives into the advanced art of prose and storytelling.", filter: (t) => t.category === 'Literature' }, default: { title: "The Full Library", subtitle: "All lessons available in The Writer's Academy.", filter: (t) => true } };
+                const getCompletedLessons = () => JSON.parse(localStorage.getItem('academyProgress')) || [];
+                const params = new URLSearchParams(window.location.search);
+                const view = params.get('view') || 'default';
                 
                 const details = viewDetails[view] || viewDetails.default;
                 document.getElementById('hero-title').textContent = details.title;
                 document.getElementById('hero-subtitle').textContent = details.subtitle;
                 
-                // --- NEW: GET COMPLETED LESSONS LIST ---
                 const completedLessons = getCompletedLessons();
                 const filteredTopics = Object.values(topics).filter(details.filter);
 
-                if (filteredTopics.length === 0) { hubContent.innerHTML = '<p>No lessons found for this section yet.</p>'; return; }
-                const groupedByCategory = filteredTopics.reduce((acc, topic) => {
-                    const category = topic.category || 'Uncategorized';
-                    if (!acc[category]) { acc[category] = []; }
-                    acc[category].push(topic);
-                    return acc;
-                }, {});
+                if (filteredTopics.length === 0) { hubContent.innerHTML = '<p style="text-align: center;">No lessons found for this section yet.</p>'; return; }
                 
+                // --- Rest of the rendering logic is unchanged ---
+                const groupedByCategory = filteredTopics.reduce((acc, topic) => { const cat = topic.category || 'Uncategorized'; if (!acc[cat]) { acc[cat] = []; } acc[cat].push(topic); return acc; }, {});
                 const fragment = document.createDocumentFragment();
                 for (const [category, lessonList] of Object.entries(groupedByCategory)) {
-                    const section = document.createElement('section');
-                    /* ... same as before ... */
-                    const grid = document.createElement('div');
-                    grid.className = 'lesson-grid';
+                    const section = document.createElement('section'); section.className = 'category-section';
+                    const title = document.createElement('h2'); title.textContent = category; section.appendChild(title);
+                    const grid = document.createElement('div'); grid.className = 'lesson-grid';
                     lessonList.forEach(topic => {
-                        const card = document.createElement('a');
-                        card.className = 'lesson-card';
-                        card.href = `lesson.html?id=${topic.id}`;
-                        
-                        // --- NEW: CHECK IF COMPLETED AND ADD VISUALS ---
+                        const card = document.createElement('a'); card.className = 'lesson-card'; card.href = `lesson.html?id=${topic.id}`;
                         const isCompleted = completedLessons.includes(topic.id);
-                        if (isCompleted) {
-                            card.classList.add('is-completed');
-                        }
-                        
-                        card.innerHTML = `
-                            ${isCompleted ? '<span class="checkmark">✅</span>' : ''}
-                            <div class="card-content"><h3>${topic.title}</h3><p>${topic.summary}</p></div>
-                            <div class="card-footer"><span>${topic.difficulty}</span><span>${topic.estimatedTime} mins</span></div>`;
+                        if (isCompleted) card.classList.add('is-completed');
+                        card.innerHTML = `${isCompleted ? '<span class="checkmark">✅</span>' : ''}<div class="card-content"><h3>${topic.title}</h3><p>${topic.summary}</p></div><div class="card-footer"><span>${topic.difficulty}</span><span>${topic.estimatedTime} mins</span></div>`;
                         grid.appendChild(card);
                     });
-                    section.appendChild(grid);
-                    fragment.appendChild(section);
+                    section.appendChild(grid); fragment.appendChild(section);
                 }
-                hubContent.innerHTML = '';
-                hubContent.appendChild(fragment);
+                hubContent.innerHTML = ''; hubContent.appendChild(fragment);
             };
 
-            const initializeHomepage = async () => { /* ... same as before ... */ };
-            
-            // Duplicating these functions here to keep the code block self-contained for you
-            viewDetails = { scriptorium: { title: "The Scriptorium", subtitle: "The library for grammar, syntax, and core foundations.", filter: (t) => t.category === 'English Language' }, lyceum: { title: "The Lyceum", subtitle: "Deep dives into the advanced art of prose and storytelling.", filter: (t) => t.category === 'Literature' }, default: { title: "The Full Library", subtitle: "All lessons available in The Writer's Academy.", filter: (t) => true } };
-            fetchDatabase = async () => { try { const r = await fetch('academy-data.json'); if (!r.ok) throw new Error('Network response was not ok'); return (await r.json()).topics; } catch (e) { console.error('Failed to load db:', e); return null; } };
-            initializeHomepage = async () => { const p = new URLSearchParams(window.location.search); const v = p.get('view') || 'default'; const t = await fetchDatabase(); renderHomepage(t, v); };
             initializeHomepage();
         });
     </script>
