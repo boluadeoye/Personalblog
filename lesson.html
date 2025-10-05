@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson Viewer - The Academy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-slate: #2D3748; --panel-cream: #F7FAFC; --accent-gold: #D69E2E; --accent-ink: #6A7A94;
+            --text-dark: #2D3748; --text-muted: #718096; --font-body: 'Lora', serif; --font-ui: 'Inter', sans-serif;
+            --success-green: #38A169; --error-red: #E53E3E;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--panel-cream); font-family: var(--font-ui); color: var(--text-dark); line-height: 1.6; }
+        h1, h2, h3 { font-family: var(--font-body); }
+        header { background: var(--bg-slate); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); z-index: 1000; height: 64px; }
+        .exit-link svg { width: 24px; height: 24px; stroke: var(--accent-ink); transition: stroke 0.2s; }
+        .exit-link:hover svg { stroke: var(--accent-gold); }
+        .brand-group { display: flex; align-items: center; }
+        .brand-text { color: var(--panel-cream); font-weight: 600; font-size: 20px; margin-left: 8px; }
+        header .logo { width: 32px; height: 32px; }
+        footer { text-align: center; padding: 24px 0 16px 0; background: var(--bg-slate); color: var(--accent-ink); font-size: 14px; margin-top: auto; }
+        #lesson-container { max-width: 800px; margin: 48px auto; padding: 0 16px; }
+        #lesson-header { margin-bottom: 48px; border-bottom: 1px solid var(--accent-ink); padding-bottom: 24px; }
+        #lesson-header h1 { font-size: 42px; color: var(--text-dark); margin-bottom: 8px; }
+        #lesson-header p.summary { font-size: 18px; color: var(--text-muted); margin-bottom: 16px; }
+        .metadata { display: flex; gap: 24px; font-size: 14px; color: var(--accent-ink); font-weight: 500; }
+        #lesson-content h2 { font-size: 28px; color: var(--accent-gold); margin-top: 40px; margin-bottom: 16px; }
+        #lesson-content p, #lesson-content li { font-family: var(--font-body); font-size: 17px; margin-bottom: 16px; }
+        .quiz-section { background: #fff; border: 1px solid var(--accent-ink); border-radius: 8px; padding: 24px; margin-top: 40px; }
+        .quiz-section h3 { margin-bottom: 16px; color: var(--text-dark); }
+        .quiz-section .interaction-block { margin-bottom: 24px; }
+        .quiz-section p.prompt { font-weight: 700; margin-bottom: 12px; }
+        .quiz-section label { display: block; margin-bottom: 8px; cursor: pointer; }
+        .quiz-section input[type="radio"] { margin-right: 8px; }
+        .quiz-section button { background: var(--accent-gold); color: var(--bg-slate); border: none; padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; transition: background-color 0.3s; margin-top: 12px; }
+        .quiz-section button:hover { background: #b88b2a; }
+        .feedback { margin-top: 12px; padding: 10px; border-radius: 4px; font-weight: 500; }
+        .feedback.correct { color: var(--success-green); background-color: #f0fff4; }
+        .feedback.incorrect { color: var(--error-red); background-color: #fff5f5; }
+        #lesson-spark { margin-top: 48px; padding: 24px; background: var(--bg-slate); color: var(--panel-cream); border-radius: 8px; border-left: 4px solid var(--accent-gold); }
+        #lesson-spark h3 { color: var(--accent-gold); }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="./academy.html" class="exit-link" title="Return to The Academy Hub">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </a>
+        <div class="brand-group">
+            <svg class="logo" viewBox="0 0 24 24">
+                <path d="M12 2 L2 22 H22 Z M12 6 L18.3 18 H5.7 Z" fill="var(--accent-gold)"/>
+            </svg>
+            <span class="brand-text">The Academy</span>
+        </div>
+    </header>
+
+    <main id="lesson-container">
+        <div id="lesson-header"></div>
+        <div id="lesson-content"></div>
+        <div id="lesson-spark"></div>
+    </main>
+
+    <footer>
+        <p>© 2025 Boluadeoye • Crafted with passion</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // This simulates the fetched content from a .md file. In a real setup, you might fetch this too.
+            const contentDB = {
+                "gram001-sva-basics.md": `
+                    <h2>The Core Rule</h2>
+                    <p>At its heart, subject-verb agreement is simple: a singular subject takes a singular verb, and a plural subject takes a plural verb. The challenge often lies in correctly identifying the subject and ignoring the other nouns in the sentence.</p>
+                    <p>For example, in the sentence "The <strong>box</strong> of apples <strong>is</strong> on the table," the subject is "box," which is singular. Therefore, the verb is "is," not "are," even though "apples" is plural. The phrase "of apples" is a prepositional phrase that describes the box.</p>
+                `
+            };
+            
+            // --- DYNAMIC DATA ENGINE ---
+            const fetchDatabase = async () => {
+                try {
+                    const response = await fetch('academy-data.json');
+                    if (!response.ok) { throw new Error('Network response was not ok ' + response.statusText); }
+                    const data = await response.json();
+                    return data.topics;
+                } catch (error) {
+                    console.error('Failed to load the academy database:', error);
+                    return null;
+                }
+            };
+
+            const handleQuizSubmit = (interaction, formElement) => {
+                const selected = formElement.querySelector(`input[name="${interaction.id}"]:checked`);
+                if (!selected) { alert('Please select an answer.'); return; }
+                const userAnswer = selected.value;
+                const feedbackEl = document.createElement('p');
+                feedbackEl.className = 'feedback';
+                if (userAnswer === interaction.correctAnswer) {
+                    feedbackEl.textContent = 'Correct! ' + interaction.explanation;
+                    feedbackEl.classList.add('correct');
+                } else {
+                    feedbackEl.textContent = 'Incorrect. ' + interaction.explanation;
+                    feedbackEl.classList.add('incorrect');
+                }
+                formElement.appendChild(feedbackEl);
+                formElement.querySelectorAll('input, button').forEach(el => el.disabled = true);
+            };
+
+            const sectionRenderers = {
+                quiz: (section) => {
+                    const quizContainer = document.createElement('div');
+                    quizContainer.className = 'quiz-section';
+                    quizContainer.innerHTML = section.content;
+                    section.interactions.forEach(interaction => {
+                        const block = document.createElement('div');
+                        block.className = 'interaction-block';
+                        const prompt = document.createElement('p');
+                        prompt.className = 'prompt';
+                        prompt.textContent = interaction.prompt;
+                        block.appendChild(prompt);
+                        const form = document.createElement('form');
+                        form.addEventListener('submit', (e) => e.preventDefault());
+                        interaction.options.forEach(option => {
+                            const label = document.createElement('label');
+                            const input = document.createElement('input');
+                            input.type = 'radio'; input.name = interaction.id; input.value = option;
+                            label.appendChild(input);
+                            label.appendChild(document.createTextNode(` ${option}`));
+                            form.appendChild(label);
+                        });
+                        const submitBtn = document.createElement('button');
+                        submitBtn.type = 'submit';
+                        submitBtn.textContent = 'Check Answer';
+                        submitBtn.onclick = () => handleQuizSubmit(interaction, form);
+                        form.appendChild(submitBtn);
+                        block.appendChild(form);
+                        quizContainer.appendChild(block);
+                    });
+                    return quizContainer;
+                }
+            };
+            
+            const renderLesson = (topicId, db) => {
+                const topic = db[topicId];
+                if (!topic) {
+                    document.getElementById('lesson-header').innerHTML = '<h1>Lesson not found</h1>';
+                    return;
+                }
+                const headerTarget = document.getElementById('lesson-header');
+                headerTarget.innerHTML = `<h1>${topic.title}</h1><p class="summary">${topic.summary}</p><div class="metadata"><span>Difficulty: <strong>${topic.difficulty}</strong></span><span>Time: <strong>${topic.estimatedTime} mins</strong></span></div>`;
+                const contentTarget = document.getElementById('lesson-content');
+                contentTarget.innerHTML = '';
+                const fragment = document.createDocumentFragment();
+                if (topic.contentFile && contentDB[topic.contentFile]) {
+                    const markdownContent = document.createElement('div');
+                    markdownContent.innerHTML = contentDB[topic.contentFile];
+                    fragment.appendChild(markdownContent);
+                }
+                if (topic.contentSections) {
+                    topic.contentSections.forEach(section => {
+                        const renderer = sectionRenderers[section.sectionType];
+                        if (renderer) { fragment.appendChild(renderer(section)); }
+                    });
+                }
+                contentTarget.appendChild(fragment);
+                const sparkTarget = document.getElementById('lesson-spark');
+                if (topic.insightSpark) {
+                    sparkTarget.innerHTML = `<h3>✨ Insight Spark</h3><p>${topic.insightSpark}</p>`;
+                }
+            };
+            
+            const initializeLesson = async () => {
+                const db = await fetchDatabase();
+                if (!db) {
+                    document.getElementById('lesson-header').innerHTML = '<h1>Error: Could not load lesson data.</h1>';
+                    return;
+                }
+                const params = new URLSearchParams(window.location.search);
+                const topicId = params.get('id') || 'gram001';
+                renderLesson(topicId, db);
+            };
+
+            initializeLesson();
+        });
+    </script>
+</body>
+</html>
