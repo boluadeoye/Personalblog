@@ -3,39 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Writer's Academy</title>
+    <title>The Writer's Academy - Library</title>
     <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-slate: #2D3748;
-            --panel-cream: #F7FAFC;
-            --accent-gold: #D69E2E;
-            --accent-ink: #6A7A94;
-            --text-dark: #2D3748;
-            --text-muted: #718096;
-            --font-body: 'Lora', serif;
-            --font-ui: 'Inter', sans-serif;
+            --bg-slate: #2D3748; --panel-cream: #F7FAFC; --accent-gold: #D69E2E; --accent-ink: #6A7A94;
+            --text-dark: #2D3748; --text-muted: #718096; --font-body: 'Lora', serif; --font-ui: 'Inter', sans-serif;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: var(--panel-cream);
-            font-family: var(--font-ui);
-            color: var(--text-dark);
-            line-height: 1.6;
-        }
+        body { background: var(--panel-cream); font-family: var(--font-ui); color: var(--text-dark); line-height: 1.6; }
         a { text-decoration: none; color: inherit; }
         h1, h2, h3 { font-family: var(--font-body); }
-        
-        /* --- Header & Footer --- */
         header {
-            background: var(--bg-slate);
-            padding: 0 16px; 
-            display: flex;
-            align-items: center;
-            justify-content: space-between; 
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            height: 64px;
+            background: var(--bg-slate); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; 
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); z-index: 1000; height: 64px;
         }
         .exit-link svg { width: 24px; height: 24px; stroke: var(--accent-ink); transition: stroke 0.2s; }
         .exit-link:hover svg { stroke: var(--accent-gold); }
@@ -43,93 +24,33 @@
         .brand-text { color: var(--panel-cream); font-weight: 600; font-size: 20px; margin-left: 8px; }
         header .logo { width: 32px; height: 32px; }
         footer {
-            text-align: center;
-            padding: 24px 0 16px 0;
-            background: var(--bg-slate);
-            color: var(--accent-ink);
-            font-size: 14px;
-            margin-top: auto;
+            text-align: center; padding: 24px 0 16px 0; background: var(--bg-slate); 
+            color: var(--accent-ink); font-size: 14px; margin-top: auto;
         }
-
-        /* --- Hero Section --- */
         .hero {
-            background: var(--bg-slate);
-            color: var(--panel-cream);
-            text-align: center;
-            padding: 80px 24px;
+            background: var(--bg-slate); color: var(--panel-cream); text-align: center; padding: 80px 24px;
         }
-        .hero h1 {
-            font-size: 48px;
-            margin-bottom: 16px;
-            color: var(--accent-gold);
-        }
-        .hero p {
-            font-size: 18px;
-            max-width: 600px;
-            margin: 0 auto;
-            opacity: 0.9;
-        }
-
-        /* --- Main Content --- */
-        #hub-content {
-            max-width: 1200px;
-            margin: 48px auto;
-            padding: 0 16px;
-        }
-
-        .category-section {
-            margin-bottom: 64px;
-        }
+        .hero h1 { font-size: 48px; margin-bottom: 16px; color: var(--accent-gold); }
+        .hero p { font-size: 18px; max-width: 600px; margin: 0 auto; opacity: 0.9; }
+        #hub-content { max-width: 1200px; margin: 48px auto; padding: 0 16px; }
+        .category-section { margin-bottom: 64px; }
         .category-section h2 {
-            font-size: 32px;
-            margin-bottom: 24px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid var(--accent-gold);
-            display: inline-block;
+            font-size: 32px; margin-bottom: 24px; padding-bottom: 12px; 
+            border-bottom: 2px solid var(--accent-gold); display: inline-block;
         }
-
-        .lesson-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-        }
-        
+        .lesson-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
         .lesson-card {
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s, box-shadow 0.3s;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s; overflow: hidden; display: flex; flex-direction: column;
         }
-        .lesson-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-        }
-        .card-content {
-            padding: 24px;
-            flex-grow: 1;
-        }
-        .card-content h3 {
-            font-size: 22px;
-            margin-bottom: 8px;
-        }
-        .card-content p {
-            font-size: 16px;
-            color: var(--text-muted);
-            margin-bottom: 16px;
-        }
+        .lesson-card:hover { transform: translateY(-5px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12); }
+        .card-content { padding: 24px; flex-grow: 1; }
+        .card-content h3 { font-size: 22px; margin-bottom: 8px; }
+        .card-content p { font-size: 16px; color: var(--text-muted); margin-bottom: 16px; }
         .card-footer {
-            padding: 16px 24px;
-            border-top: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            color: var(--accent-ink);
-            font-weight: 500;
+            padding: 16px 24px; border-top: 1px solid #e2e8f0; display: flex; 
+            justify-content: space-between; font-size: 14px; color: var(--accent-ink); font-weight: 500;
         }
-
         @media (max-width: 768px) {
             .hero h1 { font-size: 36px; }
             .hero p { font-size: 16px; }
@@ -139,7 +60,7 @@
 </head>
 <body>
     <header>
-        <a href="https://boluadeoye.vercel.app/" class="exit-link" title="Return to Main Website">
+        <a href="./academy.html" class="exit-link" title="Return to The Academy Hub">
              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
@@ -155,13 +76,12 @@
 
     <main>
         <section class="hero">
-            <h1>Welcome to The Writer's Academy</h1>
-            <p>A sanctuary for mastering the art of writing. Explore these dedicated wings to hone your craft, from foundational grammar to advanced prose.</p>
+            <h1>The Scriptorium</h1>
+            <p>This is the complete library of all lessons available in The Writer's Academy. Explore by category and begin your journey to mastery.</p>
         </section>
 
         <div id="hub-content">
-            <!-- Dynamic content will be injected here by JavaScript -->
-        </div>
+            </div>
     </main>
 
     <footer>
@@ -170,7 +90,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-
             const fetchDatabase = async () => {
                 try {
                     const response = await fetch('academy-data.json');
@@ -182,37 +101,27 @@
                     return null;
                 }
             };
-
             const renderHomepage = (topics) => {
                 const hubContent = document.getElementById('hub-content');
                 if (!topics) {
                     hubContent.innerHTML = '<p>Error loading lessons.</p>';
                     return;
                 }
-
-                // Group topics by category
                 const groupedByCategory = Object.values(topics).reduce((acc, topic) => {
                     const category = topic.category || 'Uncategorized';
-                    if (!acc[category]) {
-                        acc[category] = [];
-                    }
+                    if (!acc[category]) { acc[category] = []; }
                     acc[category].push(topic);
                     return acc;
                 }, {});
-
                 const fragment = document.createDocumentFragment();
-
                 for (const [category, lessonList] of Object.entries(groupedByCategory)) {
                     const section = document.createElement('section');
                     section.className = 'category-section';
-
                     const title = document.createElement('h2');
                     title.textContent = category;
                     section.appendChild(title);
-
                     const grid = document.createElement('div');
                     grid.className = 'lesson-grid';
-
                     lessonList.forEach(topic => {
                         const card = document.createElement('a');
                         card.className = 'lesson-card';
@@ -229,19 +138,15 @@
                         `;
                         grid.appendChild(card);
                     });
-
                     section.appendChild(grid);
                     fragment.appendChild(section);
                 }
-                
                 hubContent.appendChild(fragment);
             };
-
             const initializeHomepage = async () => {
                 const topics = await fetchDatabase();
                 renderHomepage(topics);
             };
-
             initializeHomepage();
         });
     </script>
