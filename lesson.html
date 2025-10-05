@@ -14,7 +14,10 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: var(--panel-cream); font-family: var(--font-ui); color: var(--text-dark); line-height: 1.6; }
         h1, h2, h3 { font-family: var(--font-body); }
-        header { background: var(--bg-slate); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); z-index: 1000; height: 64px; }
+        header {
+            background: var(--bg-slate); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; 
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); z-index: 1000; height: 64px;
+        }
         .exit-link svg { width: 24px; height: 24px; stroke: var(--accent-ink); transition: stroke 0.2s; }
         .exit-link:hover svg { stroke: var(--accent-gold); }
         .brand-group { display: flex; align-items: center; }
@@ -24,10 +27,7 @@
         #lesson-container { max-width: 800px; margin: 48px auto; padding: 0 16px; }
         #lesson-header { margin-bottom: 48px; border-bottom: 1px solid var(--accent-ink); padding-bottom: 24px; }
         #lesson-header h1 {
-            font-size: 42px;
-            color: var(--text-dark);
-            margin-bottom: 8px;
-            line-height: 1.1; /* <-- SURGICAL EDIT PERFORMED HERE */
+            font-size: 42px; color: var(--text-dark); margin-bottom: 8px; line-height: 1.1;
         }
         #lesson-header p.summary { font-size: 18px; color: var(--text-muted); margin-bottom: 16px; }
         .metadata { display: flex; gap: 24px; font-size: 14px; color: var(--accent-ink); font-weight: 500; }
@@ -50,7 +50,7 @@
 </head>
 <body>
     <header>
-        <a href="./index.html" class="exit-link" title="Return to The Academy Hub">
+        <a href="./academy.html" class="exit-link" title="Return to The Academy Hub">
              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
