@@ -23,7 +23,12 @@
         footer { text-align: center; padding: 24px 0 16px 0; background: var(--bg-slate); color: var(--accent-ink); font-size: 14px; margin-top: auto; }
         #lesson-container { max-width: 800px; margin: 48px auto; padding: 0 16px; }
         #lesson-header { margin-bottom: 48px; border-bottom: 1px solid var(--accent-ink); padding-bottom: 24px; }
-        #lesson-header h1 { font-size: 42px; color: var(--text-dark); margin-bottom: 8px; }
+        #lesson-header h1 {
+            font-size: 42px;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            line-height: 1.1; /* <-- SURGICAL EDIT PERFORMED HERE */
+        }
         #lesson-header p.summary { font-size: 18px; color: var(--text-muted); margin-bottom: 16px; }
         .metadata { display: flex; gap: 24px; font-size: 14px; color: var(--accent-ink); font-weight: 500; }
         #lesson-content h2 { font-size: 28px; color: var(--accent-gold); margin-top: 40px; margin-bottom: 16px; }
@@ -45,7 +50,7 @@
 </head>
 <body>
     <header>
-        <a href="./academy.html" class="exit-link" title="Return to The Academy Hub">
+        <a href="./index.html" class="exit-link" title="Return to The Academy Hub">
              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
@@ -72,7 +77,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
-            // This simulates the fetched content from a .md file. In a real setup, you might fetch this too.
             const contentDB = {
                 "gram001-sva-basics.md": `
                     <h2>The Core Rule</h2>
@@ -81,7 +85,6 @@
                 `
             };
             
-            // --- DYNAMIC DATA ENGINE ---
             const fetchDatabase = async () => {
                 try {
                     const response = await fetch('academy-data.json');
