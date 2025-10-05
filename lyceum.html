@@ -3,29 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Rebel's Athenaeum</title>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <title>The Lyceum - The Academy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-slate: #2D3748;
             --panel-cream: #F7FAFC;
-            --accent-gold: #D69E2E;
+            --accent-gold: #D69E2E; /* Vibrant Gold */
+            --accent-gold-dark: #B88B2A; /* Slightly darker gold for depth/hover */
             --accent-ink: #6A7A94;
             --text-light: #F7FAFC;
             --text-dark: #2D3748;
+            --text-muted: #718096;
+            --font-body: 'Lora', serif;
+            --font-ui: 'Inter', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            color: var(--text-dark);
+            font-family: var(--font-ui);
+            color: var(--text-light);
             background: var(--bg-slate);
+            background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.05));
             overflow-x: hidden;
+            padding-top: 64px; /* Space for fixed header */
+            min-height: 100vh;
         }
 
         h1, h2, h3 {
-            font-family: 'Lora', serif;
-            color: inherit;
+            font-family: var(--font-body);
         }
 
         a {
@@ -33,96 +44,54 @@
             color: inherit;
         }
 
-        nav {
-            position: fixed;
-            left: 0;
-            top: 0;
-            height: 100vh;
-            width: 80px;
-            background: var(--bg-slate);
-            border-right: 1px solid var(--accent-ink);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
-
-        nav ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        nav a {
-            color: var(--accent-gold);
-            font-size: 14px;
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
-            transition: transform 0.3s ease, color 0.3s ease;
-        }
-
-        nav a:hover {
-            transform: rotate(180deg) scale(1.1);
-            color: #F6E05A;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-
-        #hamburger {
-            display: none;
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 20;
-            cursor: pointer;
-            color: var(--accent-gold);
-            font-size: 24px;
-        }
-
-        #mobile-menu {
-            display: none;
+        header {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
+            right: 0;
             background: var(--bg-slate);
-            z-index: 15;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 40px;
-        }
-
-        #mobile-menu.active {
+            padding: 0 16px;
             display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            height: 64px;
         }
 
-        #mobile-menu a {
-            color: var(--accent-gold);
-            font-size: 24px;
-            transition: color 0.3s ease;
+        .exit-link svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--accent-ink);
+            transition: stroke 0.2s;
         }
 
-        #mobile-menu a:hover {
-            color: #F6E05A;
+        .exit-link:hover svg {
+            stroke: var(--accent-gold);
+        }
+
+        .brand-group {
+            display: flex;
+            align-items: center;
+        }
+
+        .brand-text {
+            color: var(--panel-cream);
+            font-weight: 600;
+            font-size: 20px;
+            margin-left: 8px;
+        }
+
+        header .logo {
+            width: 32px;
+            height: 32px;
         }
 
         main {
-            margin-left: 80px;
+            width: 100%;
         }
 
         section {
-            padding: 0 20px;
             opacity: 0;
             transform: translateY(20px);
             transition: opacity 0.6s ease, transform 0.6s ease;
@@ -135,49 +104,43 @@
 
         #atrium {
             position: relative;
-            height: 100vh;
+            min-height: calc(100vh - 64px);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            color: var(--text-light);
-            background: linear-gradient(-45deg, #2D3748, #4A5568, #805AD5, #D69E2E, #2D3748);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
+            padding: 40px 20px;
         }
 
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        #atrium .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
+        #lyceum-content { /* Wrapper for the central content */
+            max-width: 900px;
             width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.4);
-            z-index: -1;
+            padding: 40px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border: 1px solid var(--accent-gold);
+            box-shadow: 0 0 20px rgba(214, 158, 46, 0.3);
         }
 
         #atrium h1 {
             font-size: 48px;
             margin-bottom: 20px;
+            color: var(--accent-gold);
         }
 
         #atrium p.tagline {
             font-size: 20px;
             max-width: 600px;
             margin-bottom: 40px;
+            color: var(--text-light);
         }
 
         #quiz-container {
             max-width: 600px;
-            background: rgba(247, 250, 252, 0.15);
-            padding: 20px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 32px;
             border-radius: 8px;
             border: 1px solid var(--accent-ink);
         }
@@ -193,44 +156,44 @@
         .question p {
             font-size: 18px;
             margin-bottom: 20px;
+            color: var(--text-light);
         }
 
         .question button {
             background: var(--accent-gold);
             color: var(--text-dark);
             border: none;
-            padding: 10px 20px;
-            margin: 10px;
+            padding: 12px 24px;
+            margin: 8px;
             cursor: pointer;
             transition: background 0.3s ease;
             font-family: 'Inter', sans-serif;
+            border-radius: 6px;
+            font-weight: 700;
         }
 
         .question button:hover {
-            background: #F6E05A;
+            background: var(--accent-gold-dark);
         }
 
         #result {
             display: none;
             font-size: 20px;
             color: var(--accent-gold);
-            background: rgba(247, 250, 252, 0.2);
+            background: rgba(247, 250, 252, 0.1);
             padding: 15px;
             border-radius: 4px;
             margin-top: 20px;
+            font-weight: bold;
         }
 
         #chambers {
-            padding-top: 100px;
-            background: var(--bg-slate);
-            color: var(--text-light);
+            padding: 100px 20px;
+            background: var(--panel-cream);
+            color: var(--text-dark);
         }
 
         #chambers .content-container {
-            background: var(--panel-cream);
-            color: var(--text-dark);
-            padding: 40px;
-            border-radius: 8px;
             max-width: 800px;
             margin: 0 auto;
         }
@@ -239,40 +202,35 @@
             font-size: 36px;
             text-align: center;
             margin-bottom: 40px;
-            color: var(--text-light);
+            color: var(--text-dark);
         }
 
         #chambers h3 {
             font-size: 24px;
             margin-top: 30px;
+            color: var(--accent-gold);
         }
 
         #chambers p {
             font-size: 16px;
             line-height: 1.6;
+            color: var(--text-muted);
         }
 
         footer {
-            background: var(--panel-cream);
-            color: var(--text-dark);
+            background: var(--bg-slate);
             text-align: center;
-            padding: 20px;
-            margin-top: 60px;
+            padding: 24px 0;
+            border-top: 1px solid var(--accent-ink);
+        }
+
+        footer p {
+            color: var(--accent-ink);
+            opacity: 0.7;
+            font-size: 14px;
         }
 
         @media (max-width: 767px) {
-            nav {
-                display: none;
-            }
-
-            #hamburger {
-                display: block;
-            }
-
-            main {
-                margin-left: 0;
-            }
-
             #atrium h1 {
                 font-size: 32px;
             }
@@ -281,56 +239,67 @@
                 font-size: 16px;
             }
 
+            #chambers {
+                padding: 60px 20px;
+            }
+
             .question button {
                 display: block;
                 width: 100%;
                 margin: 10px 0;
             }
+
+            #lyceum-content {
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <nav>
-        <ul>
-            <li><a href="#atrium">Atrium</a></li>
-            <li><a href="#chambers">Chambers</a></li>
-        </ul>
-    </nav>
-
-    <div id="hamburger">☰</div>
-    <div id="mobile-menu">
-        <a href="#atrium">Atrium</a>
-        <a href="#chambers">Chambers</a>
-    </div>
+    <header>
+        <a href="./academy.html" class="exit-link" title="Back to The Academy">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </a>
+        <div class="brand-group">
+            <svg class="logo" viewBox="0 0 24 24">
+                <path d="M12 2 L2 22 H22 Z M12 6 L18.3 18 H5.7 Z" fill="var(--accent-gold)"/>
+            </svg>
+            <span class="brand-text">The Academy</span>
+        </div>
+    </header>
 
     <main>
         <section id="atrium">
-            <div class="overlay"></div>
-            <h1>The Lyceum: Forge Your Literary Legacy</h1>
-            <p class="tagline">Delve into advanced craft, explore profound techniques, and elevate your words beyond the ordinary.</p>
-            <div id="quiz-container">
-                <div id="q1" class="question active">
-                    <p>Question 1: What's the one writing rule you'd burn at the stake?</p>
-                    <button data-score="1">Show, don't tell – it's overrated!</button>
-                    <button data-score="0">Always outline before writing.</button>
+            <div id="lyceum-content">
+                <h1>The Lyceum: Forge Your Literary Legacy</h1>
+                <p class="tagline">Delve into advanced craft, explore profound techniques, and elevate your words beyond the ordinary.</p>
+                <div id="quiz-container">
+                    <div id="q1" class="question active">
+                        <p>What's the one writing rule you'd burn at the stake?</p>
+                        <button data-score="1">"Show, don't tell" – it's overrated!</button>
+                        <button data-score="0">Always outline before writing.</button>
+                    </div>
+                    <div id="q2" class="question">
+                        <p>How do you feel about happy endings?</p>
+                        <button data-score="1">Twist them into tragedy for impact.</button>
+                        <button data-score="0">They provide necessary closure.</button>
+                    </div>
+                    <div id="q3" class="question">
+                        <p>Grammar: Sacred or shackles?</p>
+                        <button data-score="1">Break it to forge new paths.</button>
+                        <button data-score="0">Essential for clarity.</button>
+                    </div>
+                    <div id="result"></div>
                 </div>
-                <div id="q2" class="question">
-                    <p>Question 2: How do you feel about happy endings?</p>
-                    <button data-score="1">Twist them into tragedy for impact.</button>
-                    <button data-score="0">They provide necessary closure.</button>
-                </div>
-                <div id="q3" class="question">
-                    <p>Question 3: Grammar: Sacred or shackles?</p>
-                    <button data-score="1">Break it to forge new paths.</button>
-                    <button data-score="0">Essential for clarity.</button>
-                </div>
-                <div id="result"></div>
             </div>
         </section>
 
         <section id="chambers">
-            <h2>The Chamber of Dissection</h2>
             <div class="content-container">
+                <h2>The Chamber of Dissection</h2>
                 <h3>What is Narrative Subversion?</h3>
                 <p>Narrative subversion is the art of turning storytelling conventions on their head, challenging reader expectations to create deeper, more provocative tales. It's not just plot twists; it's a rebellion against the predictable.</p>
                 
@@ -344,18 +313,10 @@
     </main>
 
     <footer>
-        <p>Escape the Lyceum? If you must...</p>
-        <p>© 2025 Boluadeoye</p>
+        <p>© 2025 Boluadeoye • Crafted with passion</p>
     </footer>
 
     <script>
-        // Mobile menu toggle
-        const hamburger = document.getElementById('hamburger');
-        const mobileMenu = document.getElementById('mobile-menu');
-        hamburger.addEventListener('click', () => {
-            mobileMenu.classList.toggle('active');
-        });
-
         // Quiz logic
         let score = 0;
         const questions = ['q1', 'q2', 'q3'];
