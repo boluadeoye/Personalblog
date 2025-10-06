@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Access - The Academy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { --accent-gold: #D69E2E; --bg-slate: #2D3748; }
+        body { font-family: 'Inter', sans-serif; }
+        h1 { font-family: 'Lora', serif; }
+    </style>
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
+        <div class="text-center">
+            <svg class="mx-auto h-12 w-auto" viewBox="0 0 24 24"><path d="M12 2 L2 22 H22 Z M12 6 L18.3 18 H5.7 Z" fill="var(--accent-gold)"/></svg>
+            <h1 class="mt-4 text-3xl font-bold tracking-tight text-gray-900">Member Access</h1>
+            <p class="mt-2 text-sm text-gray-600">Enter your personal access key to unlock the premium library.</p>
+        </div>
+        <form id="login-form" class="space-y-6">
+            <div>
+                <label for="access-key" class="sr-only">Personal Access Key</label>
+                <input id="access-key" name="key" type="text" required class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-yellow-500 focus:outline-none focus:ring-yellow-500 sm:text-sm" placeholder="Your Personal Access Key">
+            </div>
+            <p id="error-message" class="text-sm text-red-600 hidden"></p>
+            <div>
+                <button type="submit" class="group relative flex w-full justify-center rounded-md border border-transparent bg-slate-800 py-3 px-4 text-sm font-medium text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2" style="background-color: var(--bg-slate);">
+                    Unlock Academy
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="./auth.js"></script>
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const key = document.getElementById('access-key').value;
+            const errorMessage = document.getElementById('error-message');
+            
+            const isValid = await auth.login(key);
+            
+            if (isValid) {
+                errorMessage.classList.add('hidden');
+                // On success, redirect to the main library page.
+                window.location.href = './index.html';
+            } else {
+                errorMessage.textContent = 'Invalid access key. Please check your key and try again.';
+                errorMessage.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
