@@ -40,28 +40,9 @@
         #next-lesson-container { margin-top: 40px; }
         #next-lesson-container a { display: block; background: var(--accent-gold); color: var(--bg-slate); padding: 12px 20px; border-radius: 8px; font-weight: 700; text-align: center; transition: background-color 0.3s; }
         #next-lesson-container a:hover { background-color: #b88b2a; }
-        #lesson-content h2 { 
-            font-size: 28px; color: var(--accent-gold); margin-top: 40px; margin-bottom: 16px; 
-            padding-bottom: 8px; border-bottom: 1px dashed #e2e8f0; /* Subtle border for H2 */
-        }
-        #lesson-content h3 { 
-            font-size: 24px; color: var(--accent-gold); margin-top: 30px; margin-bottom: 12px; 
-            padding-bottom: 6px; border-bottom: 1px dashed #e9ecef; /* Subtle border for H3 */
-        }
+        #lesson-content h2 { font-size: 28px; color: var(--accent-gold); margin-top: 40px; margin-bottom: 16px; }
         #lesson-content p { font-family: var(--font-body); font-size: 17px; margin-bottom: 16px; }
         #lesson-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 16px 0; }
-
-        /* --- NEW: Adjusted List Indentation --- */
-        #lesson-content ul, #lesson-content ol {
-            margin-left: 25px; /* Adjust this value as needed */
-            margin-bottom: 16px;
-        }
-        #lesson-content ul li, #lesson-content ol li {
-            font-family: var(--font-body);
-            font-size: 17px;
-            margin-bottom: 8px;
-        }
-
         .quiz-section { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-top: 40px; }
         .quiz-section h3 { margin-bottom: 16px; }
         .interaction-block { margin-bottom: 24px; }
@@ -96,186 +77,145 @@
         <div id="lesson-spark"></div>
     </main>
     <footer><p>© 2025 Boluadeoye • Crafted with passion</p></footer>
-    <script>
-    document.addEventListener('DOMContentLoaded', async () => {
 
-        // --- 1. ALL HELPER FUNCTIONS ARE DEFINED FIRST ---
+    <!-- CORRECTED SCRIPT SECTION -->
+    <script type="module" src="./auth.js"></script>
+    <script type="module">
+        // Now that auth.js is loaded as a module, this script can use it.
+        document.addEventListener('DOMContentLoaded', async () => {
+            
+            const fetchDatabase = async () => {
+                try {
+                    const response = await fetch('./academy-data.json');
+                    if (!response.ok) { throw new Error('DB not found'); }
+                    return (await response.json()).topics;
+                } catch (error) { console.error(error); return null; }
+            };
 
-        const fetchDatabase = async () => {
-            try {
-                const response = await fetch('./academy-data.json');
-                if (!response.ok) { throw new Error('DB not found'); }
-                return (await response.json()).topics;
-            } catch (error) {
-                console.error(error);
-                return null;
-            }
-        };
+            const markLessonAsComplete = (topicId) => {
+                let completed = JSON.parse(localStorage.getItem('academyProgress')) || [];
+                if (!completed.includes(topicId)) {
+                    completed.push(topicId);
+                    localStorage.setItem('academyProgress', JSON.stringify(completed));
+                }
+            };
 
-        const markLessonAsComplete = (topicId) => {
-            let completed = JSON.parse(localStorage.getItem('academyProgress')) || [];
-            if (!completed.includes(topicId)) {
-                completed.push(topicId);
-                localStorage.setItem('academyProgress', JSON.stringify(completed));
-            }
-        };
-
-        const handleQuizSubmit = (interaction, optionsDiv, topicId, db) => {
-            const selected = optionsDiv.querySelector(`input[name="${interaction.id}"]:checked`);
-            if (!selected) { alert('Please select an answer.'); return; }
-            const isCorrect = selected.value === interaction.correctAnswer;
-            const feedbackEl = document.createElement('div');
-            feedbackEl.className = 'feedback';
-            if (isCorrect) {
-                feedbackEl.classList.add('correct');
-                feedbackEl.innerHTML = `<i data-feather="check-circle"></i> <strong>Correct!</strong> ${interaction.explanation}`;
-                markLessonAsComplete(topicId);
-                renderNextLesson(db[topicId].unlocks, db, topicId);
-            } else {
-                feedbackEl.classList.add('incorrect');
-                feedbackEl.innerHTML = `<i data-feather="x-circle"></i> <strong>Not quite.</strong> ${interaction.explanation}`;
-            }
-            optionsDiv.querySelectorAll('label').forEach(l => {
-                const r = l.querySelector('input');
-                if (r.value === interaction.correctAnswer) l.classList.add('correct');
-                else if (r.checked) l.classList.add('incorrect');
-            });
-            optionsDiv.parentElement.appendChild(feedbackEl);
-            feather.replace({ 'stroke-width': 2, width: 20, height: 20 });
-            optionsDiv.parentElement.querySelectorAll('button, input').forEach(el => el.disabled = true);
-        };
-
-        const sectionRenderers = {
-            quiz: (section, topicId, db) => {
-                const qc = document.createElement('div'); qc.className = 'quiz-section';
-                qc.innerHTML = section.content ? `<h3>${section.content}</h3>` : '';
-                section.interactions.forEach(i => {
-                    const b = document.createElement('div'); b.className = 'interaction-block';
-                    const p = document.createElement('p'); p.className = 'prompt'; p.textContent = i.prompt; b.appendChild(p);
-                    const oD = document.createElement('div'); oD.className = 'quiz-options';
-                    i.options.forEach((o, idx) => {
-                        const l = document.createElement('label'); l.htmlFor = `${i.id}-${idx}`;
-                        const inp = document.createElement('input'); inp.type = 'radio'; inp.id = `${i.id}-${idx}`; inp.name = i.id; inp.value = o;
-                        const s = document.createElement('span'); s.className = 'option-text'; s.textContent = o;
-                        l.appendChild(inp); l.appendChild(s); oD.appendChild(l);
-                    });
-                    const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = 'Check Answer';
-                    btn.onclick = () => handleQuizSubmit(i, oD, topicId, db);
-                    b.appendChild(oD); b.appendChild(btn); qc.appendChild(b);
+            const handleQuizSubmit = (interaction, optionsDiv, topicId, db) => {
+                const selected = optionsDiv.querySelector(`input[name="${interaction.id}"]:checked`);
+                if (!selected) { alert('Please select an answer.'); return; }
+                const isCorrect = selected.value === interaction.correctAnswer;
+                const feedbackEl = document.createElement('div');
+                feedbackEl.className = 'feedback';
+                if (isCorrect) {
+                    feedbackEl.classList.add('correct');
+                    feedbackEl.innerHTML = `<i data-feather="check-circle"></i> <strong>Correct!</strong> ${interaction.explanation}`;
+                    markLessonAsComplete(topicId);
+                    renderNextLesson(db[topicId].unlocks, db, topicId);
+                } else {
+                    feedbackEl.classList.add('incorrect');
+                    feedbackEl.innerHTML = `<i data-feather="x-circle"></i> <strong>Not quite.</strong> ${interaction.explanation}`;
+                }
+                optionsDiv.querySelectorAll('label').forEach(l => {
+                    const r = l.querySelector('input');
+                    if (r.value === interaction.correctAnswer) l.classList.add('correct');
+                    else if (r.checked) l.classList.add('incorrect');
                 });
-                return qc;
+                optionsDiv.parentElement.appendChild(feedbackEl);
+                feather.replace({ 'stroke-width': 2, width: 20, height: 20 });
+                optionsDiv.parentElement.querySelectorAll('button, input').forEach(el => el.disabled = true);
+            };
+
+            const sectionRenderers = {
+                quiz: (section, topicId, db) => {
+                    const qc = document.createElement('div'); qc.className = 'quiz-section';
+                    qc.innerHTML = section.content ? `<h3>${section.content}</h3>` : '';
+                    section.interactions.forEach(i => {
+                        const b = document.createElement('div'); b.className = 'interaction-block';
+                        const p = document.createElement('p'); p.className = 'prompt'; p.textContent = i.prompt; b.appendChild(p);
+                        const oD = document.createElement('div'); oD.className = 'quiz-options';
+                        i.options.forEach((o, idx) => {
+                            const l = document.createElement('label'); l.htmlFor = `${i.id}-${idx}`;
+                            const inp = document.createElement('input'); inp.type = 'radio'; inp.id = `${i.id}-${idx}`; inp.name = i.id; inp.value = o;
+                            const s = document.createElement('span'); s.className = 'option-text'; s.textContent = o;
+                            l.appendChild(inp); l.appendChild(s); oD.appendChild(l);
+                        });
+                        const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = 'Check Answer';
+                        btn.onclick = () => handleQuizSubmit(i, oD, topicId, db);
+                        b.appendChild(oD); b.appendChild(btn); qc.appendChild(b);
+                    });
+                    return qc;
+                }
+            };
+
+            const renderPrerequisites = (prereqs, db) => {
+                const c = document.getElementById('prerequisites-container');
+                if (!prereqs || prereqs.length === 0) { c.innerHTML = ''; return; }
+                let l = prereqs.map(id => db[id] ? `<a href="lesson.html?id=${id}">${db[id].title}</a>` : '').join(', ');
+                if (l) { c.innerHTML = `<div class="nav-box"><h3>Before You Begin</h3><p>This lesson builds on: ${l}</p></div>`; }
+            };
+            
+            const renderNextLesson = (unlocks, db, currentTopicId) => {
+                const c = document.getElementById('next-lesson-container');
+                const comp = JSON.parse(localStorage.getItem('academyProgress')) || [];
+                if (!unlocks || unlocks.length === 0 || !comp.includes(currentTopicId)) { c.innerHTML = ''; return; }
+                const next = db[unlocks[0]];
+                if (next) { c.innerHTML = `<a href="lesson.html?id=${next.id}">Continue Your Journey →<br><small>${next.title}</small></a>`; }
+            };
+
+            const renderLesson = async (topicId, db) => {
+                const topic = db[topicId];
+                if (!topic) { document.getElementById('lesson-header').innerHTML = '<h1>Lesson Not Found</h1>'; return; }
+                const headerTarget = document.getElementById('lesson-header');
+                headerTarget.innerHTML = `<h1>${topic.title}</h1><p class="summary">${topic.summary}</p><div class="metadata"><span class="difficulty difficulty-${topic.difficulty.toLowerCase()}"><i data-feather="bar-chart-2"></i> ${topic.difficulty}</span><span><i data-feather="clock"></i> ${topic.estimatedTime} mins</span></div>`;
+                const contentTarget = document.getElementById('lesson-content');
+                contentTarget.innerHTML = '';
+                try {
+                    const contentPath = `lessons/${topicId}/content.md`;
+                    const response = await fetch(contentPath);
+                    if (!response.ok) throw new Error('Content not found for this lesson.');
+                    const markdownText = await response.text();
+                    marked.setOptions({ baseUrl: `lessons/${topicId}/` });
+                    contentTarget.innerHTML = marked.parse(markdownText);
+                } catch (error) {
+                    contentTarget.innerHTML = '<p><em>Content for this lesson is being crafted and will be available soon.</em></p>';
+                }
+                if (topic.contentSections && topic.contentSections.length > 0) {
+                    topic.contentSections.forEach(section => contentTarget.appendChild(sectionRenderers.quiz(section, topicId, db)));
+                }
+                renderPrerequisites(topic.prerequisites, db);
+                renderNextLesson(topic.unlocks, db, topicId);
+                const sparkTarget = document.getElementById('lesson-spark');
+                if (topic.insightSpark) { sparkTarget.innerHTML = `<h3>✨ Insight Spark</h3><p>${topic.insightSpark}</p>`; sparkTarget.style.display = 'block'; }
+                else { sparkTarget.style.display = 'none'; }
+            };
+
+            // Main execution logic
+            if (typeof auth === 'undefined') {
+                document.body.innerHTML = '<h1>Error: Authentication system failed to load. Please ensure auth.js is present.</h1>';
+                return;
             }
-        };
-
-        const renderPrerequisites = (prereqs, db) => {
-            const c = document.getElementById('prerequisites-container');
-            if (!prereqs || prereqs.length === 0) { c.innerHTML = ''; return; }
-            let l = prereqs.map(id => db[id] ? `<a href="lesson.html?id=${id}">${db[id].title}</a>` : '').join(', ');
-            if (l) { c.innerHTML = `<div class="nav-box"><h3>Before You Begin</h3><p>This lesson builds on: ${l}</p></div>`; }
-        };
-        
-        const renderNextLesson = (unlocks, db, currentTopicId) => {
-            const c = document.getElementById('next-lesson-container');
-            const comp = JSON.parse(localStorage.getItem('academyProgress')) || [];
-            if (!unlocks || unlocks.length === 0 || !comp.includes(currentTopicId)) { c.innerHTML = ''; return; }
-            const next = db[unlocks[0]];
-            if (next) { c.innerHTML = `<a href="lesson.html?id=${next.id}">Continue Your Journey →<br><small>${next.title}</small></a>`; }
-        };
-
-        const renderLesson = async (topicId, db) => {
+            const db = await fetchDatabase();
+            if (!db) { document.getElementById('lesson-header').innerHTML = '<h1>Error: Could not load academy data.</h1>'; return; }
+            const params = new URLSearchParams(window.location.search);
+            const topicId = params.get('id') || 'gram001';
             const topic = db[topicId];
             if (!topic) { document.getElementById('lesson-header').innerHTML = '<h1>Lesson Not Found</h1>'; return; }
-            
-            const headerTarget = document.getElementById('lesson-header');
-            const contentTarget = document.getElementById('lesson-content');
-            
-            headerTarget.innerHTML = `<h1>${topic.title}</h1><p class="summary">${topic.summary}</p><div class="metadata"><span class="difficulty difficulty-${topic.difficulty.toLowerCase()}"><i data-feather="bar-chart-2"></i> ${topic.difficulty}</span><span><i data-feather="clock"></i> ${topic.estimatedTime} mins</span></div>`;
-            contentTarget.innerHTML = '';
-            
-            try {
-                const contentPath = `lessons/${topicId}/content.md`;
-                const response = await fetch(contentPath);
-                if (!response.ok) throw new Error('Content not found for this lesson.');
-                const markdownText = await response.text();
-                marked.setOptions({ baseUrl: `lessons/${topicId}/` });
-                contentTarget.innerHTML = marked.parse(markdownText);
-            } catch (error) {
-                contentTarget.innerHTML = '<p><em>Content for this lesson is being crafted and will be available soon.</em></p>';
-            }
-            
-            if (topic.contentSections && topic.contentSections.length > 0) {
-                topic.contentSections.forEach(section => contentTarget.appendChild(sectionRenderers.quiz(section, topicId, db)));
-            }
-            
-            renderPrerequisites(topic.prerequisites, db);
-            renderNextLesson(topic.unlocks, db, topicId);
-            
-            const sparkTarget = document.getElementById('lesson-spark');
-            if (topic.insightSpark) { 
-                sparkTarget.innerHTML = `<h3>✨ Insight Spark</h3><p>${topic.insightSpark}</p>`;
-                sparkTarget.style.display = 'block';
+            const isPremium = topic.access === 'premium';
+            const userIsLoggedIn = auth.isLoggedIn();
+
+            if (isPremium && !userIsLoggedIn) {
+                const headerTarget = document.getElementById('lesson-header');
+                const contentTarget = document.getElementById('lesson-content');
+                headerTarget.innerHTML = `<h1>${topic.title}</h1><p class="summary" style="color: #92400e; background-color: #fef3c7; padding: 1rem; border-radius: 0.375rem;">This is a premium lesson reserved for inner circle members.</p>`;
+                contentTarget.innerHTML = `<div style="text-align: center; padding: 2rem; border: 2px dashed #d1d5db; border-radius: 0.5rem; margin-top: 2rem;"><svg style="margin: 0 auto; height: 3rem; width: 3rem; color: #9ca3af;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg><h3 style="margin-top: 0.5rem; font-size: 1.25rem; font-weight: 500; color: #111827;">Unlock This Lesson</h3><p style="margin-top: 0.25rem; font-size: 0.875rem; color: #6b7280;">You must have a personal access key to view this content.</p><div style="margin-top: 1.5rem;"><a href="./login.html" style="display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid transparent; font-size: 0.875rem; font-weight: 500; border-radius: 0.375rem; color: white; background-color: #2D3748;">Enter Access Key</a></div></div>`;
+                document.getElementById('prerequisites-container').style.display = 'none';
+                document.getElementById('next-lesson-container').style.display = 'none';
+                document.getElementById('lesson-spark').style.display = 'none';
             } else {
-                 sparkTarget.style.display = 'none';
+                await renderLesson(topicId, db);
             }
-        };
-
-        // --- 2. MAIN EXECUTION LOGIC ---
-
-        // Must include auth.js before this script runs
-        if (typeof auth === 'undefined') {
-            console.error('CRITICAL: auth.js is not loaded.');
-            document.body.innerHTML = '<h1>Error: Authentication system failed to load.</h1>';
-            return;
-        }
-
-        const db = await fetchDatabase();
-        if (!db) {
-            document.getElementById('lesson-header').innerHTML = '<h1>Error: Could not load academy data.</h1>';
-            return;
-        }
-        
-        const params = new URLSearchParams(window.location.search);
-        const topicId = params.get('id') || 'gram001';
-        const topic = db[topicId];
-
-        if (!topic) {
-            document.getElementById('lesson-header').innerHTML = '<h1>Lesson Not Found</h1>';
-            return;
-        }
-
-        const isPremium = topic.access === 'premium';
-        const userIsLoggedIn = auth.isLoggedIn();
-
-        if (isPremium && !userIsLoggedIn) {
-            // If the lesson is premium and user is NOT logged in, show the locked message.
-            const headerTarget = document.getElementById('lesson-header');
-            const contentTarget = document.getElementById('lesson-content');
-            
-            headerTarget.innerHTML = `<h1>${topic.title}</h1><p class="summary" style="color: #92400e; background-color: #fef3c7; padding: 1rem; border-radius: 0.375rem;">This is a premium lesson reserved for inner circle members.</p>`;
-            contentTarget.innerHTML = `
-                <div style="text-align: center; padding: 2rem; border: 2px dashed #d1d5db; border-radius: 0.5rem; margin-top: 2rem;">
-                    <svg style="margin: 0 auto; height: 3rem; width: 3rem; color: #9ca3af;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                    <h3 style="margin-top: 0.5rem; font-size: 1.25rem; font-weight: 500; color: #111827;">Unlock This Lesson</h3>
-                    <p style="margin-top: 0.25rem; font-size: 0.875rem; color: #6b7280;">You must have a personal access key to view this content.</p>
-                    <div style="margin-top: 1.5rem;">
-                        <a href="./login.html" style="display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid transparent; font-size: 0.875rem; font-weight: 500; border-radius: 0.375rem; color: white; background-color: #2D3748;">
-                            Enter Access Key
-                        </a>
-                    </div>
-                </div>
-            `;
-            // Hide other elements
-            document.getElementById('prerequisites-container').style.display = 'none';
-            document.getElementById('next-lesson-container').style.display = 'none';
-            document.getElementById('lesson-spark').style.display = 'none';
-            
-        } else {
-            // If the lesson is free OR the user is logged in, show the content.
-            await renderLesson(topicId, db);
-        }
-
-        feather.replace({ 'stroke-width': 1.5 });
-    });
-</script>
+            feather.replace({ 'stroke-width': 1.5 });
+        });
+    </script>
 </body>
 </html>
