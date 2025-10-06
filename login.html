@@ -4,71 +4,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Member Access - The Academy</title>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lora&family=Source+Sans+Pro&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --accent-gold: #D69E2E; --bg-slate: #2D3748; }
-        body { font-family: 'Inter', sans-serif; }
-        h1 { font-family: 'Lora', serif; }
+        body { background-color: #FDFDFD; font-family: 'Lora', serif; }
+        h1, h2 { font-family: 'Playfair Display', serif; }
+        .btn-primary { background-color: #001F3F; color: white; }
+        .btn-primary:hover { background-color: #003366; }
+        .input-field { font-family: 'Source Sans Pro', sans-serif; }
     </style>
 </head>
-<body class="bg-slate-50 flex items-center justify-center min-h-screen">
-    <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
+<body class="flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-md p-8 md:p-12 space-y-6 bg-white rounded-lg shadow-xl">
         <div class="text-center">
-            <a href="./index.html"><svg class="mx-auto h-12 w-auto" viewBox="0 0 24 24"><path d="M12 2 L2 22 H22 Z M12 6 L18.3 18 H5.7 Z" fill="var(--accent-gold)"/></svg></a>
-            <h1 class="mt-4 text-3xl font-bold tracking-tight text-gray-900">Member Access</h1>
-            <p class="mt-2 text-sm text-gray-600">Enter your personal access key to unlock the premium library.</p>
+            <a href="./academy.html"><svg class="mx-auto h-12 w-auto" viewBox="0 0 24 24"><path d="M12 2 L2 22 H22 Z M12 6 L18.3 18 H5.7 Z" fill="#D4AF37"/></svg></a>
+            <h1 class="mt-4 text-3xl font-bold tracking-tight text-gray-900" style="color: #001F3F;">Academy Access</h1>
+            <p class="mt-2 text-sm text-gray-600">Sign in to unlock your premium library.</p>
         </div>
         <form id="login-form" class="space-y-6">
             <div>
-                <label for="access-key" class="sr-only">Personal Access Key</label>
-                <input id="access-key" name="key" type="text" required class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-yellow-500 focus:outline-none focus:ring-yellow-500 sm:text-sm" placeholder="Your Personal Access Key">
+                <label for="email" class="sr-only">Email address</label>
+                <input id="email" name="email" type="email" autocomplete="email" required class="input-field relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-yellow-500 focus:outline-none focus:ring-yellow-500 sm:text-sm" placeholder="Email address">
+            </div>
+            <div>
+                <label for="password" class="sr-only">Password</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" required class="input-field relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-yellow-500 focus:outline-none focus:ring-yellow-500 sm:text-sm" placeholder="Password">
             </div>
             <p id="error-message" class="text-sm text-red-600 hidden"></p>
             <div>
-                <button id="submit-button" type="submit" class="group relative flex w-full justify-center rounded-md border border-transparent bg-slate-800 py-3 px-4 text-sm font-medium text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2" style="background-color: var(--bg-slate);">
-                    Unlock Academy
+                <button id="submit-button" type="submit" class="group relative flex w-full justify-center rounded-md border border-transparent py-3 px-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 btn-primary">
+                    Sign In
                 </button>
             </div>
         </form>
     </div>
 
-    <script>
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
+    <script type="module">
+        import { auth } from './auth.js';
+
+        // Redirect if already logged in
+        if (auth.getUser()) {
+            window.location.href = './index.html';
+        }
+
+        const loginForm = document.getElementById('login-form');
+        const errorMessage = document.getElementById('error-message');
+        const submitButton = document.getElementById('submit-button');
+
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const accessKey = document.getElementById('access-key').value;
-            const errorMessage = document.getElementById('error-message');
-            const submitButton = document.getElementById('submit-button');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
             
             submitButton.disabled = true;
-            submitButton.textContent = 'Verifying...';
+            submitButton.textContent = 'Signing In...';
             errorMessage.classList.add('hidden');
 
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ accessKey: accessKey })
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    localStorage.setItem('academy_session_token', data.token);
-                    submitButton.textContent = 'Success!';
-                    window.location.href = './index.html'; // Redirect to the library
-                } else {
-                    errorMessage.textContent = data.message || 'Invalid access key.';
-                    errorMessage.classList.remove('hidden');
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'Unlock Academy';
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                errorMessage.textContent = 'An error occurred. Please try again.';
+            const { user, error } = await auth.login(email, password);
+            
+            if (error) {
+                errorMessage.textContent = error.message;
                 errorMessage.classList.remove('hidden');
                 submitButton.disabled = false;
-                submitButton.textContent = 'Unlock Academy';
+                submitButton.textContent = 'Sign In';
+            } else {
+                submitButton.textContent = 'Success!';
+                window.location.href = './index.html'; // Redirect to the main library
             }
         });
     </script>
