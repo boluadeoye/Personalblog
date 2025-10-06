@@ -33,8 +33,9 @@
         </form>
     </div>
 
-    <script src="./auth.js"></script>
-    <script>
+    <script type="module">
+        import { auth } from './auth.js';
+
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const key = document.getElementById('access-key').value;
@@ -44,7 +45,6 @@
             
             if (isValid) {
                 errorMessage.classList.add('hidden');
-                // On success, redirect to the main library page.
                 window.location.href = './index.html';
             } else {
                 errorMessage.textContent = 'Invalid access key. Please check your key and try again.';
