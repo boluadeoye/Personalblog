@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Academy Admin Panel</title>
+    <title>Academy Admin Panel - Batch Tool</title>
     <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -19,13 +19,15 @@
             white-space: pre-wrap;
             cursor: pointer;
             border: 2px dashed transparent;
+            max-height: 200px;
+            overflow-y: auto;
         }
         .result-box:hover {
             border-color: var(--accent-gold);
         }
     </style>
 </head>
-<body class="bg-slate-50 flex items-center justify-center min-h-screen">
+<body class="bg-slate-50 flex items-center justify-center min-h-screen p-4">
 
     <div id="password-prompt" class="w-full max-w-sm p-8 space-y-6 bg-white rounded-lg shadow-md">
         <div class="text-center">
@@ -46,29 +48,31 @@
         </form>
     </div>
 
-    <div id="admin-panel" class="w-full max-w-2xl p-8 space-y-6 bg-white rounded-lg shadow-md hidden">
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900">Key Generation Tool</h1>
-        <p class="text-sm text-gray-600">Use this tool to create new personal access keys for your students.</p>
+    <div id="admin-panel" class="w-full max-w-4xl p-8 space-y-6 bg-white rounded-lg shadow-md hidden">
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900">Batch Key Generation Tool</h1>
+        <p class="text-sm text-gray-600">Paste a list of student names or emails below (one per line) to generate multiple keys at once.</p>
         
         <div class="space-y-4">
             <div>
-                <label for="student-info" class="block text-sm font-medium text-gray-700">Student Name or Email (for your reference)</label>
-                <input id="student-info" type="text" class="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-yellow-500 focus:outline-none focus:ring-yellow-500 sm:text-sm" placeholder="e.g., John Doe">
+                <label for="student-list" class="block text-sm font-medium text-gray-700">Student List</label>
+                <textarea id="student-list" rows="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm" placeholder="John Doe&#10;jane.doe@example.com&#10;Student Three"></textarea>
             </div>
             <button id="generate-btn" class="flex w-full justify-center rounded-md border border-transparent py-3 px-4 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2" style="background-color: var(--bg-slate);">
-                Generate New Key
+                Generate Batch of Keys
             </button>
         </div>
 
-        <div id="result-area" class="space-y-4 pt-4 border-t hidden">
-            <h2 class="text-xl font-bold text-gray-900">New Key Generated!</h2>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">1. Copy this key and send it to your student:</label>
-                <div id="new-key" class="result-box mt-1" title="Click to copy"></div>
-            </div>
-             <div>
-                <label class="block text-sm font-medium text-gray-700">2. Copy this hash and add it to your `auth.js` file:</label>
-                <div id="new-hash" class="result-box mt-1" title="Click to copy"></div>
+        <div id="result-area" class="space-y-6 pt-4 border-t hidden">
+            <h2 class="text-xl font-bold text-green-600">Success! Batch Generated.</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">1. Copy these keys and send to your students:</label>
+                    <div id="keys-output" class="result-box mt-1" title="Click to copy"></div>
+                </div>
+                 <div>
+                    <label class="block text-sm font-medium text-gray-700">2. Copy this block of hashes and add to `auth.js`:</label>
+                    <div id="hashes-output" class="result-box mt-1" title="Click to copy"></div>
+                </div>
             </div>
             <p id="copy-feedback" class="text-sm text-green-600 text-center font-medium"></p>
         </div>
@@ -98,18 +102,37 @@
 
         const generateBtn = document.getElementById('generate-btn');
         const resultArea = document.getElementById('result-area');
-        const newKeyEl = document.getElementById('new-key');
-        const newHashEl = document.getElementById('new-hash');
+        const keysOutputEl = document.getElementById('keys-output');
+        const hashesOutputEl = document.getElementById('hashes-output');
+        const studentListEl = document.getElementById('student-list');
         const copyFeedback = document.getElementById('copy-feedback');
 
         generateBtn.addEventListener('click', async () => {
-            const { newKey, newHash } = await auth.generateKey();
-            
-            newKeyEl.textContent = newKey;
-            newHashEl.textContent = `"${newHash}",`; // Add quotes and a comma for easy pasting
+            const studentList = studentListEl.value.split('\n').filter(line => line.trim() !== '');
+            if (studentList.length === 0) {
+                alert('Please enter at least one student name/email.');
+                return;
+            }
 
+            generateBtn.textContent = 'Generating...';
+            generateBtn.disabled = true;
+            
+            let keysOutput = '';
+            let hashesOutput = '';
+
+            for (const student of studentList) {
+                const { newKey, newHash } = await auth.generateKey();
+                keysOutput += `${student.trim()}: ${newKey}\n`;
+                hashesOutput += `    "${newHash}",\n`;
+            }
+
+            keysOutputEl.textContent = keysOutput.trim();
+            hashesOutputEl.textContent = hashesOutput.trim();
+            
             resultArea.classList.remove('hidden');
             copyFeedback.textContent = '';
+            generateBtn.textContent = 'Generate Batch of Keys';
+            generateBtn.disabled = false;
         });
 
         function copyToClipboard(element) {
@@ -121,9 +144,8 @@
             });
         }
 
-        newKeyEl.addEventListener('click', () => copyToClipboard(newKeyEl));
-        newHashEl.addEventListener('click', () => copyToClipboard(newHashEl));
-
+        keysOutputEl.addEventListener('click', () => copyToClipboard(keysOutputEl));
+        hashesOutputEl.addEventListener('click', () => copyToClipboard(hashesOutputEl));
     </script>
 </body>
 </html>
