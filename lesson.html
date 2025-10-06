@@ -96,125 +96,64 @@
         <div id="lesson-spark"></div>
     </main>
     <footer><p>© 2025 Boluadeoye • Crafted with passion</p></footer>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const fetchDatabase = async () => {
-                try {
-                    const response = await fetch('./academy-data.json');
-                    if (!response.ok) { throw new Error('DB not found'); }
-                    return (await response.json()).topics;
-                } catch (error) { console.error(error); return null; }
-            };
-
-            const markLessonAsComplete = (topicId) => {
-                let completed = JSON.parse(localStorage.getItem('academyProgress')) || [];
-                if (!completed.includes(topicId)) {
-                    completed.push(topicId);
-                    localStorage.setItem('academyProgress', JSON.stringify(completed));
-                }
-            };
-
-            const handleQuizSubmit = (interaction, optionsDiv, topicId, db) => {
-                const selected = optionsDiv.querySelector(`input[name="${interaction.id}"]:checked`);
-                if (!selected) { alert('Please select an answer.'); return; }
-                const isCorrect = selected.value === interaction.correctAnswer;
-                const feedbackEl = document.createElement('div');
-                feedbackEl.className = 'feedback';
-                if (isCorrect) {
-                    feedbackEl.classList.add('correct');
-                    feedbackEl.innerHTML = `<i data-feather="check-circle"></i> <strong>Correct!</strong> ${interaction.explanation}`;
-                    markLessonAsComplete(topicId);
-                    renderNextLesson(db[topicId].unlocks, db, topicId);
-                } else {
-                    feedbackEl.classList.add('incorrect');
-                    feedbackEl.innerHTML = `<i data-feather="x-circle"></i> <strong>Not quite.</strong> ${interaction.explanation}`;
-                }
-                optionsDiv.querySelectorAll('label').forEach(l => {
-                    const r = l.querySelector('input');
-                    if (r.value === interaction.correctAnswer) l.classList.add('correct');
-                    else if (r.checked) l.classList.add('incorrect');
-                });
-                optionsDiv.parentElement.appendChild(feedbackEl);
-                feather.replace({ 'stroke-width': 2, width: 20, height: 20 });
-                optionsDiv.parentElement.querySelectorAll('button, input').forEach(el => el.disabled = true);
-            };
-
-            const sectionRenderers = {
-                quiz: (section, topicId, db) => {
-                    const qc = document.createElement('div'); qc.className = 'quiz-section';
-                    qc.innerHTML = section.content ? `<h3>${section.content}</h3>` : '';
-                    section.interactions.forEach(i => {
-                        const b = document.createElement('div'); b.className = 'interaction-block';
-                        const p = document.createElement('p'); p.className = 'prompt'; p.textContent = i.prompt; b.appendChild(p);
-                        const oD = document.createElement('div'); oD.className = 'quiz-options';
-                        i.options.forEach((o, idx) => {
-                            const l = document.createElement('label'); l.htmlFor = `${i.id}-${idx}`;
-                            const inp = document.createElement('input'); inp.type = 'radio'; inp.id = `${i.id}-${idx}`; inp.name = i.id; inp.value = o;
-                            const s = document.createElement('span'); s.className = 'option-text'; s.textContent = o;
-                            l.appendChild(inp); l.appendChild(s); oD.appendChild(l);
-                        });
-                        const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = 'Check Answer';
-                        btn.onclick = () => handleQuizSubmit(i, oD, topicId, db);
-                        b.appendChild(oD); b.appendChild(btn); qc.appendChild(b);
-                    });
-                    return qc;
-                }
-            };
-
-            const renderPrerequisites = (prereqs, db) => {
-                const c = document.getElementById('prerequisites-container');
-                if (!prereqs || prereqs.length === 0) { c.innerHTML = ''; return; }
-                let l = prereqs.map(id => db[id] ? `<a href="lesson.html?id=${id}">${db[id].title}</a>` : '').join(', ');
-                if (l) { c.innerHTML = `<div class="nav-box"><h3>Before You Begin</h3><p>This lesson builds on: ${l}</p></div>`; }
-            };
+    <script src="./auth.js"></script> <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const db = await fetchDatabase();
+            if (!db) { document.getElementById('lesson-header').innerHTML = '<h1>Error: Could not load data.</h1>'; return; }
             
-            const renderNextLesson = (unlocks, db, currentTopicId) => {
-                const c = document.getElementById('next-lesson-container');
-                const comp = JSON.parse(localStorage.getItem('academyProgress')) || [];
-                if (!unlocks || unlocks.length === 0 || !comp.includes(currentTopicId)) { c.innerHTML = ''; return; }
-                const next = db[unlocks[0]];
-                if (next) { c.innerHTML = `<a href="lesson.html?id=${next.id}">Continue Your Journey →<br><small>${next.title}</small></a>`; }
-            };
+            const params = new URLSearchParams(window.location.search);
+            const topicId = params.get('id') || 'gram001';
+            const topic = db[topicId];
 
-            const renderLesson = async (topicId, db) => {
-                const topic = db[topicId];
-                if (!topic) { document.getElementById('lesson-header').innerHTML = '<h1>Lesson Not Found</h1>'; return; }
+            if (!topic) {
+                document.getElementById('lesson-header').innerHTML = '<h1>Lesson Not Found</h1>'; 
+                return;
+            }
+
+            // --- THE NEW CONTENT GATING LOGIC ---
+            const isPremium = topic.access === 'premium';
+            const userIsLoggedIn = auth.isLoggedIn();
+
+            if (isPremium && !userIsLoggedIn) {
+                // If the lesson is premium and user is NOT logged in, show the locked message.
                 const headerTarget = document.getElementById('lesson-header');
-                headerTarget.innerHTML = `<h1>${topic.title}</h1><p class="summary">${topic.summary}</p><div class="metadata"><span class="difficulty difficulty-${topic.difficulty.toLowerCase()}"><i data-feather="bar-chart-2"></i> ${topic.difficulty}</span><span><i data-feather="clock"></i> ${topic.estimatedTime} mins</span></div>`;
                 const contentTarget = document.getElementById('lesson-content');
-                contentTarget.innerHTML = '';
-                try {
-                    const contentPath = `lessons/${topicId}/content.md`;
-                    const response = await fetch(contentPath);
-                    if (!response.ok) throw new Error('Content not found for this lesson.');
-                    const markdownText = await response.text();
-                    marked.setOptions({ baseUrl: `lessons/${topicId}/` });
-                    contentTarget.innerHTML = marked.parse(markdownText);
-                } catch (error) {
-                    contentTarget.innerHTML = '<p><em>Content for this lesson is being crafted and will be available soon.</em></p>';
-                }
-                if (topic.contentSections && topic.contentSections.length > 0) {
-                    topic.contentSections.forEach(section => contentTarget.appendChild(sectionRenderers.quiz(section, topicId, db)));
-                }
-                renderPrerequisites(topic.prerequisites, db);
-                renderNextLesson(topic.unlocks, db, topicId);
-                const sparkTarget = document.getElementById('lesson-spark');
-                if (topic.insightSpark) { sparkTarget.innerHTML = `<h3>✨ Insight Spark</h3><p>${topic.insightSpark}</p>`; }
-            };
-
-            // --- 2. THE MAIN INITIALIZATION FUNCTION ---
-            const initialize = async () => {
-                const db = await fetchDatabase();
-                if (!db) { document.getElementById('lesson-header').innerHTML = '<h1>Error: Could not load academy data.</h1>'; return; }
-                const params = new URLSearchParams(window.location.search);
-                const topicId = params.get('id') || 'gram001';
+                
+                headerTarget.innerHTML = `<h1>${topic.title}</h1><p class="summary text-yellow-800 bg-yellow-100 p-4 rounded-md">This is a premium lesson reserved for inner circle members.</p>`;
+                contentTarget.innerHTML = `
+                    <div class="text-center p-8 border-2 border-dashed rounded-lg">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        <h3 class="mt-2 text-xl font-medium text-gray-900">Unlock This Lesson</h3>
+                        <p class="mt-1 text-sm text-gray-500">You must have a personal access key to view this content.</p>
+                        <div class="mt-6">
+                            <a href="./login.html" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white" style="background-color: var(--bg-slate);">
+                                Enter Access Key
+                            </a>
+                        </div>
+                    </div>
+                `;
+                // Hide other elements
+                document.getElementById('prerequisites-container').style.display = 'none';
+                document.getElementById('next-lesson-container').style.display = 'none';
+                document.getElementById('lesson-spark').style.display = 'none';
+                
+            } else {
+                // If the lesson is free OR the user is logged in, show the content.
                 await renderLesson(topicId, db);
-                feather.replace({ 'stroke-width': 1.5 });
-            };
+            }
 
-            // --- 3. RUN INITIALIZATION ---
-            initialize();
+            feather.replace({ 'stroke-width': 1.5 });
         });
+
+        // --- All other functions (fetchDatabase, renderLesson, etc.) remain the same ---
+        // (You can copy and paste them from your previous correct version of lesson.html)
+        async function fetchDatabase() { try { const r = await fetch('./academy-data.json'); if (!r.ok) throw new Error('DB not found'); return (await r.json()).topics; } catch (e) { console.error(e); return null; } }
+        const markLessonAsComplete = (topicId) => { let c = JSON.parse(localStorage.getItem('academyProgress')) || []; if (!c.includes(topicId)) { c.push(topicId); localStorage.setItem('academyProgress', JSON.stringify(c)); } };
+        const handleQuizSubmit = (interaction, optionsDiv, topicId, db) => { const s = optionsDiv.querySelector(`input[name="${interaction.id}"]:checked`); if (!s) { alert('Please select an answer.'); return; } const isCorrect = s.value === interaction.correctAnswer; const f = document.createElement('div'); f.className = 'feedback'; if (isCorrect) { f.classList.add('correct'); f.innerHTML = `<i data-feather="check-circle"></i> <strong>Correct!</strong> ${interaction.explanation}`; markLessonAsComplete(topicId); renderNextLesson(db[topicId].unlocks, db, topicId); } else { f.classList.add('incorrect'); f.innerHTML = `<i data-feather="x-circle"></i> <strong>Not quite.</strong> ${interaction.explanation}`; } optionsDiv.querySelectorAll('label').forEach(l => { const r = l.querySelector('input'); if (r.value === interaction.correctAnswer) l.classList.add('correct'); else if (r.checked) l.classList.add('incorrect'); }); optionsDiv.parentElement.appendChild(f); feather.replace({ 'stroke-width': 2, width: 20, height: 20 }); optionsDiv.parentElement.querySelectorAll('button, input').forEach(el => el.disabled = true); };
+        const sectionRenderers = { quiz: (section, topicId, db) => { const qc = document.createElement('div'); qc.className = 'quiz-section'; qc.innerHTML = section.content ? `<h3>${section.content}</h3>` : ''; section.interactions.forEach(i => { const b = document.createElement('div'); b.className = 'interaction-block'; const p = document.createElement('p'); p.className = 'prompt'; p.textContent = i.prompt; b.appendChild(p); const oD = document.createElement('div'); oD.className = 'quiz-options'; i.options.forEach((o, idx) => { const l = document.createElement('label'); l.htmlFor = `${i.id}-${idx}`; const inp = document.createElement('input'); inp.type = 'radio'; inp.id = `${i.id}-${idx}`; inp.name = i.id; inp.value = o; const s = document.createElement('span'); s.className = 'option-text'; s.textContent = o; l.appendChild(inp); l.appendChild(s); oD.appendChild(l); }); const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = 'Check Answer'; btn.onclick = () => handleQuizSubmit(i, oD, topicId, db); b.appendChild(oD); b.appendChild(btn); qc.appendChild(b); }); return qc; } };
+        const renderPrerequisites = (prereqs, db) => { const c = document.getElementById('prerequisites-container'); if (!prereqs || prereqs.length === 0) { c.innerHTML = ''; return; } let l = prereqs.map(id => db[id] ? `<a href="lesson.html?id=${id}">${db[id].title}</a>` : '').join(', '); if (l) { c.innerHTML = `<div class="nav-box"><h3>Before You Begin</h3><p>This lesson builds on: ${l}</p></div>`; } };
+        const renderNextLesson = (unlocks, db, currentTopicId) => { const c = document.getElementById('next-lesson-container'); const comp = JSON.parse(localStorage.getItem('academyProgress')) || []; if (!unlocks || unlocks.length === 0 || !comp.includes(currentTopicId)) { c.innerHTML = ''; return; } const next = db[unlocks[0]]; if (next) { c.innerHTML = `<a href="lesson.html?id=${next.id}">Continue Your Journey →<br><small>${next.title}</small></a>`; } };
+        const renderLesson = async (topicId, db) => { const topic = db[topicId]; if (!topic) { document.getElementById('lesson-header').innerHTML = '<h1>Lesson Not Found</h1>'; return; } const headerTarget = document.getElementById('lesson-header'); headerTarget.innerHTML = `<h1>${topic.title}</h1><p class="summary">${topic.summary}</p><div class="metadata"><span class="difficulty difficulty-${topic.difficulty.toLowerCase()}"><i data-feather="bar-chart-2"></i> ${topic.difficulty}</span><span><i data-feather="clock"></i> ${topic.estimatedTime} mins</span></div>`; const contentTarget = document.getElementById('lesson-content'); contentTarget.innerHTML = ''; try { const contentPath = `lessons/${topicId}/content.md`; const response = await fetch(contentPath); if (!response.ok) throw new Error('Content not found for this lesson.'); const markdownText = await response.text(); marked.setOptions({ baseUrl: `lessons/${topicId}/` }); contentTarget.innerHTML = marked.parse(markdownText); } catch (error) { contentTarget.innerHTML = '<p><em>Content for this lesson is being crafted and will be available soon.</em></p>'; } if (topic.contentSections && topic.contentSections.length > 0) { topic.contentSections.forEach(section => contentTarget.appendChild(sectionRenderers.quiz(section, topicId, db))); } renderPrerequisites(topic.prerequisites, db); renderNextLesson(topic.unlocks, db, topicId); const sparkTarget = document.getElementById('lesson-spark'); if (topic.insightSpark) { sparkTarget.innerHTML = `<h3>✨ Insight Spark</h3><p>${topic.insightSpark}</p>`; } };
     </script>
 </body>
 </html>
