@@ -10,25 +10,11 @@
         :root { --accent-gold: #D69E2E; --bg-slate: #2D3748; }
         body { font-family: 'Inter', sans-serif; }
         h1, h2 { font-family: 'Lora', serif; }
-        .result-box {
-            background-color: #f3f4f6;
-            padding: 1rem;
-            border-radius: 0.375rem;
-            font-family: monospace;
-            word-wrap: break-word;
-            white-space: pre-wrap;
-            cursor: pointer;
-            border: 2px dashed transparent;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        .result-box:hover {
-            border-color: var(--accent-gold);
-        }
+        .result-box { background-color: #f3f4f6; padding: 1rem; border-radius: 0.375rem; font-family: monospace; word-wrap: break-word; white-space: pre-wrap; cursor: pointer; border: 2px dashed transparent; max-height: 200px; overflow-y: auto; }
+        .result-box:hover { border-color: var(--accent-gold); }
     </style>
 </head>
 <body class="bg-slate-50 flex items-center justify-center min-h-screen p-4">
-
     <div id="password-prompt" class="w-full max-w-sm p-8 space-y-6 bg-white rounded-lg shadow-md">
         <div class="text-center">
             <h1 class="text-3xl font-bold tracking-tight text-gray-900">Admin Panel</h1>
@@ -47,11 +33,9 @@
             </div>
         </form>
     </div>
-
     <div id="admin-panel" class="w-full max-w-4xl p-8 space-y-6 bg-white rounded-lg shadow-md hidden">
         <h1 class="text-3xl font-bold tracking-tight text-gray-900">Batch Key Generation Tool</h1>
         <p class="text-sm text-gray-600">Paste a list of student names or emails below (one per line) to generate multiple keys at once.</p>
-        
         <div class="space-y-4">
             <div>
                 <label for="student-list" class="block text-sm font-medium text-gray-700">Student List</label>
@@ -61,7 +45,6 @@
                 Generate Batch of Keys
             </button>
         </div>
-
         <div id="result-area" class="space-y-6 pt-4 border-t hidden">
             <h2 class="text-xl font-bold text-green-600">Success! Batch Generated.</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -78,17 +61,13 @@
         </div>
     </div>
 
-    <script src="./auth.js"></script>
-    <script>
-        // --- IMPORTANT: CHANGE THIS PASSWORD! ---
+    <script type="module">
+        import { auth } from './auth.js';
         const ADMIN_PASSWORD = "admin-pass-2025";
-        // -----------------------------------------
-
         const passwordPrompt = document.getElementById('password-prompt');
         const adminPanel = document.getElementById('admin-panel');
         const passwordForm = document.getElementById('password-form');
         const passwordError = document.getElementById('password-error');
-
         passwordForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const password = document.getElementById('admin-password').value;
@@ -99,42 +78,34 @@
                 passwordError.classList.remove('hidden');
             }
         });
-
         const generateBtn = document.getElementById('generate-btn');
         const resultArea = document.getElementById('result-area');
         const keysOutputEl = document.getElementById('keys-output');
         const hashesOutputEl = document.getElementById('hashes-output');
         const studentListEl = document.getElementById('student-list');
         const copyFeedback = document.getElementById('copy-feedback');
-
         generateBtn.addEventListener('click', async () => {
             const studentList = studentListEl.value.split('\n').filter(line => line.trim() !== '');
             if (studentList.length === 0) {
                 alert('Please enter at least one student name/email.');
                 return;
             }
-
             generateBtn.textContent = 'Generating...';
             generateBtn.disabled = true;
-            
             let keysOutput = '';
             let hashesOutput = '';
-
             for (const student of studentList) {
                 const { newKey, newHash } = await auth.generateKey();
                 keysOutput += `${student.trim()}: ${newKey}\n`;
                 hashesOutput += `    "${newHash}",\n`;
             }
-
             keysOutputEl.textContent = keysOutput.trim();
             hashesOutputEl.textContent = hashesOutput.trim();
-            
             resultArea.classList.remove('hidden');
             copyFeedback.textContent = '';
             generateBtn.textContent = 'Generate Batch of Keys';
             generateBtn.disabled = false;
         });
-
         function copyToClipboard(element) {
             navigator.clipboard.writeText(element.textContent).then(() => {
                 copyFeedback.textContent = `Copied to clipboard!`;
@@ -143,7 +114,6 @@
                 copyFeedback.textContent = 'Failed to copy.';
             });
         }
-
         keysOutputEl.addEventListener('click', () => copyToClipboard(keysOutputEl));
         hashesOutputEl.addEventListener('click', () => copyToClipboard(hashesOutputEl));
     </script>
