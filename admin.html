@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academy Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { --accent-gold: #D69E2E; --bg-slate: #2D3748; }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2 { font-family: 'Lora', serif; }
+        .result-box {
+            background-color: #f3f4f6;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            font-family: monospace;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            cursor: pointer;
+            border: 2px dashed transparent;
+        }
+        .result-box:hover {
+            border-color: var(--accent-gold);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen">
+
+    <div id="password-prompt" class="w-full max-w-sm p-8 space-y-6 bg-white rounded-lg shadow-md">
+        <div class="text-center">
+            <h1 class="text-3xl font-bold tracking-tight text-gray-900">Admin Panel</h1>
+            <p class="mt-2 text-sm text-gray-600">Enter your administrator password to continue.</p>
+        </div>
+        <form id="password-form" class="space-y-6">
+            <div>
+                <label for="admin-password" class="sr-only">Admin Password</label>
+                <input id="admin-password" type="password" required class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-yellow-500 focus:outline-none focus:ring-yellow-500 sm:text-sm" placeholder="Administrator Password">
+            </div>
+            <p id="password-error" class="text-sm text-red-600 hidden">Incorrect password.</p>
+            <div>
+                <button type="submit" class="group relative flex w-full justify-center rounded-md border border-transparent py-3 px-4 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2" style="background-color: var(--bg-slate);">
+                    Authenticate
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div id="admin-panel" class="w-full max-w-2xl p-8 space-y-6 bg-white rounded-lg shadow-md hidden">
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900">Key Generation Tool</h1>
+        <p class="text-sm text-gray-600">Use this tool to create new personal access keys for your students.</p>
+        
+        <div class="space-y-4">
+            <div>
+                <label for="student-info" class="block text-sm font-medium text-gray-700">Student Name or Email (for your reference)</label>
+                <input id="student-info" type="text" class="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-yellow-500 focus:outline-none focus:ring-yellow-500 sm:text-sm" placeholder="e.g., John Doe">
+            </div>
+            <button id="generate-btn" class="flex w-full justify-center rounded-md border border-transparent py-3 px-4 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2" style="background-color: var(--bg-slate);">
+                Generate New Key
+            </button>
+        </div>
+
+        <div id="result-area" class="space-y-4 pt-4 border-t hidden">
+            <h2 class="text-xl font-bold text-gray-900">New Key Generated!</h2>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">1. Copy this key and send it to your student:</label>
+                <div id="new-key" class="result-box mt-1" title="Click to copy"></div>
+            </div>
+             <div>
+                <label class="block text-sm font-medium text-gray-700">2. Copy this hash and add it to your `auth.js` file:</label>
+                <div id="new-hash" class="result-box mt-1" title="Click to copy"></div>
+            </div>
+            <p id="copy-feedback" class="text-sm text-green-600 text-center font-medium"></p>
+        </div>
+    </div>
+
+    <script src="./auth.js"></script>
+    <script>
+        // --- IMPORTANT: CHANGE THIS PASSWORD! ---
+        const ADMIN_PASSWORD = "admin-pass-2025";
+        // -----------------------------------------
+
+        const passwordPrompt = document.getElementById('password-prompt');
+        const adminPanel = document.getElementById('admin-panel');
+        const passwordForm = document.getElementById('password-form');
+        const passwordError = document.getElementById('password-error');
+
+        passwordForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const password = document.getElementById('admin-password').value;
+            if (password === ADMIN_PASSWORD) {
+                passwordPrompt.classList.add('hidden');
+                adminPanel.classList.remove('hidden');
+            } else {
+                passwordError.classList.remove('hidden');
+            }
+        });
+
+        const generateBtn = document.getElementById('generate-btn');
+        const resultArea = document.getElementById('result-area');
+        const newKeyEl = document.getElementById('new-key');
+        const newHashEl = document.getElementById('new-hash');
+        const copyFeedback = document.getElementById('copy-feedback');
+
+        generateBtn.addEventListener('click', async () => {
+            const { newKey, newHash } = await auth.generateKey();
+            
+            newKeyEl.textContent = newKey;
+            newHashEl.textContent = `"${newHash}",`; // Add quotes and a comma for easy pasting
+
+            resultArea.classList.remove('hidden');
+            copyFeedback.textContent = '';
+        });
+
+        function copyToClipboard(element) {
+            navigator.clipboard.writeText(element.textContent).then(() => {
+                copyFeedback.textContent = `Copied to clipboard!`;
+                setTimeout(() => copyFeedback.textContent = '', 2000);
+            }).catch(err => {
+                copyFeedback.textContent = 'Failed to copy.';
+            });
+        }
+
+        newKeyEl.addEventListener('click', () => copyToClipboard(newKeyEl));
+        newHashEl.addEventListener('click', () => copyToClipboard(newHashEl));
+
+    </script>
+</body>
+</html>
