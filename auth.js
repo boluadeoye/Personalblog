@@ -5,6 +5,8 @@
 // I have started you with one key. You will add more using your admin page.
 const VALID_KEY_HASHES = new Set([
     "1f43899a613c90714c6b8a82914207906b864b41a02715761358606c116d123d" // This is the SHA-256 hash for the key "academy-key-123"
+    "17621ce3228ab52045cb85b2f3efdce08c38b2a50bc474fe7248dd5debac6f5b",
+    "56eb32d6e3ef4487863c00619824cb8d49624904a3679ea6c2084c365f97954c",
 ]);
 
 const auth = {
