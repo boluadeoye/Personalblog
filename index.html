@@ -94,110 +94,43 @@
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const viewDetails = {
-                scriptorium: { title: "The Scriptorium", subtitle: "The library for grammar, syntax, and core foundations.", filter: (t) => t.category === 'English Language', icon: 'book-open' },
-                lyceum: { title: "The Lyceum", subtitle: "Deep dives into the advanced art of prose and storytelling.", filter: (t) => t.category === 'Literature', icon: 'feather' },
-                default: { title: "The Full Library", subtitle: "All lessons available in The Writer's Academy.", filter: (t) => true, icon: 'archive' }
-            };
+    document.addEventListener('DOMContentLoaded', async () => {
+        const auth = { isLoggedIn: () => !!localStorage.getItem('academy_session_token') };
 
-            const getCompletedLessons = () => JSON.parse(localStorage.getItem('academyProgress')) || [];
+        if (auth.isLoggedIn()) {
+            const nav = document.getElementById('auth-nav');
+            if(nav) nav.innerHTML = '<a href="#" id="logout-btn" class="text-amber-400 font-bold hover:underline">Logout</a>';
+            document.getElementById('logout-btn')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.removeItem('academy_session_token');
+                window.location.reload();
+            });
+        }
 
-            const fetchDatabase = async () => {
-                try {
-                    const response = await fetch('./academy-data.json');
-                    if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
-                    const data = await response.json();
-                    return data.topics;
-                } catch (error) {
-                    console.error('Failed to load the academy database:', error);
-                    return null;
-                }
-            };
-
-            const renderHomepage = (topics, view) => {
-                const hubContent = document.getElementById('hub-content');
-                const details = viewDetails[view] || viewDetails.default;
-                document.getElementById('hero-title').textContent = details.title;
-                document.getElementById('hero-subtitle').textContent = details.subtitle;
-                
-                const completedLessons = getCompletedLessons();
-                const filteredTopics = Object.values(topics).filter(details.filter);
-
-                if (filteredTopics.length === 0) {
-                    hubContent.innerHTML = '<p style="text-align: center;">No lessons found for this section yet.</p>';
-                    return;
-                }
-
-                const groupedByCategory = filteredTopics.reduce((acc, topic) => {
-                    const category = topic.category || 'Uncategorized';
-                    if (!acc[category]) { acc[category] = []; }
-                    acc[category].push(topic);
-                    return acc;
-                }, {});
-
-                const fragment = document.createDocumentFragment();
-                for (const [category, lessonList] of Object.entries(groupedByCategory)) {
-                    const section = document.createElement('section');
-                    section.className = 'category-section';
-                    
-                    const categoryIcon = category === 'English Language' ? 'book-open' : 'feather';
-                    const title = document.createElement('h2');
-                    title.className = 'category-title';
-                    title.innerHTML = `<i data-feather="${categoryIcon}"></i> ${category}`;
-                    section.appendChild(title);
-                    
-                    const grid = document.createElement('div');
-                    grid.className = 'lesson-grid';
-                    lessonList.forEach(topic => {
-                        const card = document.createElement('a');
-                        card.className = 'lesson-card';
-                        card.href = `lesson.html?id=${topic.id}`;
-                        const isCompleted = completedLessons.includes(topic.id);
-                        if (isCompleted) card.classList.add('is-completed');
-                        
-                        card.innerHTML = `
-                            ${isCompleted ? '<span class="checkmark">✅</span>' : ''}
-                            <div class="card-content">
-                                <h3>${topic.title}</h3>
-                                <p>${topic.summary}</p>
-                            </div>
-                            <div class="card-footer">
-                                <span class="difficulty difficulty-${topic.difficulty.toLowerCase()}">
-                                    <i data-feather="bar-chart-2" class="icon-small"></i>
-                                    ${topic.difficulty}
-                                </span>
-                                <span>
-                                    <i data-feather="clock" class="icon-small"></i>
-                                    ${topic.estimatedTime} mins
-                                </span>
-                            </div>`;
-                        grid.appendChild(card);
-                    });
-                    section.appendChild(grid);
-                    fragment.appendChild(section);
-                }
-                hubContent.innerHTML = '';
-                hubContent.appendChild(fragment);
-                
-                feather.replace({ 'stroke-width': 2, width: 24, height: 24 });
-                document.querySelectorAll('.icon-small').forEach(el => feather.replace({ 'stroke-width': 2, width: 16, height: 16 }));
-            };
-
-            const initializeHomepage = async () => {
-                const hubContent = document.getElementById('hub-content');
-                const topics = await fetchDatabase();
-                if (!topics) {
-                    hubContent.innerHTML = `<p style="text-align: center; color: var(--error-red);"><strong>Failed to load lessons.</strong><br>Please ensure the 'academy-data.json' file exists and is valid.</p>`;
-                    return;
-                }
-                const params = new URLSearchParams(window.location.search);
-                const view = params.get('view') || 'default';
-                renderHomepage(topics, view);
-            };
-
-            initializeHomepage();
+        const db = await (await fetch('./academy-data.json')).json();
+        const library = document.getElementById('library-grid');
+        const urlParams = new URLSearchParams(window.location.search);
+        const view = urlParams.get('view');
+        
+        Object.values(db.topics).forEach(topic => {
+            if (view && topic.tags.includes(view)) {
+                const isPremium = topic.access === 'premium';
+                const isLocked = isPremium && !auth.isLoggedIn();
+                const card = document.createElement('a');
+                card.href = isLocked ? './login.html' : `./lesson.html?id=${topic.id}`;
+                card.className = 'bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 block';
+                card.innerHTML = `
+                    <h3 class="text-2xl font-bold text-slate-800 font-serif">${topic.title}</h3>
+                    <p class="text-slate-600 mt-2">${topic.summary}</p>
+                    <div class="flex items-center justify-between mt-4 text-sm text-slate-500">
+                        <span>${topic.difficulty}</span>
+                        ${isPremium ? '<span class="flex items-center gap-1 font-bold text-amber-600">' + (isLocked ? '🔒' : '⭐') + ' Premium</span>' : '<span class="font-bold text-green-600">Free</span>'}
+                    </div>
+                `;
+                library.appendChild(card);
+            }
         });
-    </script>
+    });
+</script>
 </body>
 </html>
