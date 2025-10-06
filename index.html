@@ -4,32 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Library - The Academy</title>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lora&family=Source+Sans+Pro&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --bg-slate: #2D3748; --panel-cream: #F7FAFC; --accent-gold: #D69E2E; --accent-ink: #6A7A94;
-            --text-dark: #2D3748; --font-body: 'Lora', serif; --font-ui: 'Inter', sans-serif;
-        }
-        body { font-family: 'Inter', sans-serif; background-color: var(--panel-cream); }
-        h1, h2, h3 { font-family: 'Lora', serif; }
-        .card-premium-unlocked { border-left: 4px solid var(--accent-gold); }
+        body { background-color: #FDFDFD; font-family: 'Lora', serif; }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+        .ui-font { font-family: 'Source Sans Pro', sans-serif; }
+        header { background-color: #001F3F; }
+        .card-premium-unlocked { border-left: 4px solid #D4AF37; }
         .card-premium-locked { border-left: 4px solid #d1d5db; }
-        .card-free { border-left: 4px solid #10b981; }
+        .card-free { border-left: 4px solid #8A9A5B; }
     </style>
 </head>
-<body class="text-slate-800">
+<body class="text-gray-800">
 
-    <header class="bg-slate-800 text-white shadow-lg" style="background-color: var(--bg-slate);">
+    <header class="text-white shadow-lg">
         <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
-                <div class="flex items-center">
-                    <a href="./academy.html" class="flex-shrink-0 flex items-center gap-2">
-                        <svg class="h-8 w-8" viewBox="0 0 24 24"><path d="M12 2 L2 22 H22 Z M12 6 L18.3 18 H5.7 Z" fill="var(--accent-gold)"/></svg>
-                        <span class="font-bold text-2xl font-serif">The Academy</span>
-                    </a>
-                </div>
-                <div id="auth-nav" class="text-sm">
+                <a href="./academy.html" class="flex items-center gap-2">
+                    <svg class="h-8 w-8" viewBox="0 0 24 24"><path d="M12 2 L2 22 H22 Z M12 6 L18.3 18 H5.7 Z" fill="#D4AF37"/></svg>
+                    <span class="font-bold text-2xl">The Academy</span>
+                </a>
+                <div id="auth-nav" class="text-sm ui-font">
                     <a href="./login.html" class="font-bold hover:underline">Member Login</a>
                 </div>
             </div>
@@ -39,82 +35,87 @@
     <main class="py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <h1 id="library-title" class="text-5xl font-bold">The Library</h1>
-                <p id="library-subtitle" class="mt-4 text-lg text-slate-600">Browse our collection of lessons on the craft of writing.</p>
+                <h1 id="library-title" class="text-5xl font-bold text-gray-900" style="color: #001F3F;">The Library</h1>
+                <p id="library-subtitle" class="mt-4 text-lg text-gray-600">Browse our collection of lessons on the craft of writing.</p>
             </div>
-
             <div id="library-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                </div>
+                <p class="ui-font col-span-full text-center text-gray-500">Loading lessons...</p>
+            </div>
         </div>
     </main>
 
-    <footer class="mt-24 py-8 bg-slate-800 text-center text-slate-400" style="background-color: var(--bg-slate);">
-        <p>© 2025 Boluadeoye • Crafted with passion</p>
+    <footer class="mt-24 py-8 text-center text-gray-400" style="background-color: #001F3F;">
+        <p class="ui-font">© 2025 Boluadeoye • Crafted with passion</p>
     </footer>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const auth = { isLoggedIn: () => !!localStorage.getItem('academy_session_token') };
-            const libraryTitle = document.getElementById('library-title');
-            const librarySubtitle = document.getElementById('library-subtitle');
+    <script type="module">
+        import { auth, database } from './auth.js';
 
-            // Handle Login/Logout Button
-            if (auth.isLoggedIn()) {
-                const nav = document.getElementById('auth-nav');
-                if(nav) nav.innerHTML = '<a href="#" id="logout-btn" class="font-bold hover:underline" style="color: var(--accent-gold);">Logout</a>';
-                document.getElementById('logout-btn')?.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    localStorage.removeItem('academy_session_token');
-                    window.location.reload();
-                });
+        const authNav = document.getElementById('auth-nav');
+        const libraryGrid = document.getElementById('library-grid');
+        const libraryTitle = document.getElementById('library-title');
+        const librarySubtitle = document.getElementById('library-subtitle');
+        const urlParams = new URLSearchParams(window.location.search);
+        const view = urlParams.get('view');
+
+        // Update titles based on view filter
+        if (view === 'scriptorium') {
+            libraryTitle.textContent = 'The Scriptorium';
+            librarySubtitle.textContent = 'Lessons focused on the mechanics and grammar of language.';
+        } else if (view === 'lyceum') {
+            libraryTitle.textContent = 'The Lyceum';
+            librarySubtitle.textContent = 'Lessons focused on the study and appreciation of literature.';
+        }
+        
+        function renderLessons(lessons, user) {
+            libraryGrid.innerHTML = ''; // Clear loading state
+            const filteredLessons = lessons.filter(topic => !view || (topic.tags && topic.tags.includes(view)));
+
+            if (filteredLessons.length === 0) {
+                 libraryGrid.innerHTML = '<p class="ui-font col-span-full text-center text-gray-500">No lessons found for this view.</p>';
+                 return;
             }
 
-            // Fetch Data
-            const db = await (await fetch('./academy-data.json')).json();
-            const library = document.getElementById('library-grid');
-            const urlParams = new URLSearchParams(window.location.search);
-            const view = urlParams.get('view');
-
-            // Update Titles based on view
-            if (view === 'scriptorium') {
-                libraryTitle.textContent = 'The Scriptorium';
-                librarySubtitle.textContent = 'Lessons focused on the mechanics and grammar of language.';
-            } else if (view === 'lyceum') {
-                libraryTitle.textContent = 'The Lyceum';
-                librarySubtitle.textContent = 'Lessons focused on the study and appreciation of literature.';
-            }
-
-            // --- CORRECTED LOGIC IS HERE ---
-            Object.values(db.topics).forEach(topic => {
-                // The condition now checks IF a view exists, and if so, if the topic matches.
-                // If NO view exists, it shows all topics that are tagged Scriptorium OR Lyceum.
-                const matchesView = topic.tags.includes(view);
-                if (!view || matchesView) {
-                    const isPremium = topic.access === 'premium';
-                    const isLocked = isPremium && !auth.isLoggedIn();
-                    
-                    let cardClass = isPremium ? (isLocked ? 'card-premium-locked' : 'card-premium-unlocked') : 'card-free';
-
-                    const card = document.createElement('a');
-                    card.href = isLocked ? './login.html' : `./lesson.html?id=${topic.id}`;
-                    card.className = `bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 block ${cardClass}`;
-                    
-                    card.innerHTML = `
-                        <div class="flex justify-between items-start">
-                             <h3 class="text-2xl font-bold text-slate-800 font-serif pr-4">${topic.title}</h3>
-                             ${isPremium ? `<span class="flex-shrink-0 text-lg">${isLocked ? '🔒' : '⭐'}</span>` : ''}
-                        </div>
-                        <p class="text-slate-600 mt-2">${topic.summary}</p>
-                        <div class="flex items-center justify-between mt-4 text-sm text-slate-500">
-                            <span class="px-2 py-1 rounded text-xs font-bold ${topic.difficulty === 'Beginner' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${topic.difficulty}</span>
-                            ${isPremium ? `<span class="font-bold" style="color: var(--accent-gold);">Premium</span>` : `<span class="font-bold" style="color: #10b981;">Free</span>`}
-                        </div>
-                    `;
-                    library.appendChild(card);
-                }
+            filteredLessons.forEach(topic => {
+                const isPremium = topic.access === 'premium';
+                const isLocked = isPremium && !user;
+                
+                let cardClass = isPremium ? (isLocked ? 'card-premium-locked' : 'card-premium-unlocked') : 'card-free';
+                const card = document.createElement('a');
+                card.href = isLocked ? './login.html' : `./lesson.html?id=${topic.id}`;
+                card.className = `bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 block ${cardClass}`;
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                         <h3 class="text-2xl font-bold pr-4" style="color: #001F3F;">${topic.title}</h3>
+                         ${isPremium ? `<span class="flex-shrink-0 text-lg">${isLocked ? '🔒' : '⭐'}</span>` : ''}
+                    </div>
+                    <p class="text-gray-600 mt-2 text-base">${topic.summary}</p>
+                    <div class="flex items-center justify-between mt-4 text-sm ui-font">
+                        <span class="px-2 py-1 rounded text-xs font-bold ${topic.difficulty === 'Beginner' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${topic.difficulty}</span>
+                        ${isPremium ? `<span class="font-bold" style="color: #D4AF37;">Premium</span>` : `<span class="font-bold" style="color: #8A9A5B;">Free</span>`}
+                    </div>
+                `;
+                libraryGrid.appendChild(card);
             });
+        }
+
+        auth.onAuthStateChange(async (user) => {
+            if (user) {
+                authNav.innerHTML = `<button id="logout-btn" class="font-bold hover:underline" style="color: #D4AF37;">Logout</button>`;
+                document.getElementById('logout-btn').addEventListener('click', () => auth.logout());
+            } else {
+                authNav.innerHTML = `<a href="./login.html" class="font-bold hover:underline">Member Login</a>`;
+            }
+            
+            const { data: lessons, error } = await database.getLessons();
+            if (error) {
+                libraryGrid.innerHTML = '<p class="text-red-500">Error loading lessons. Please check your connection and refresh.</p>';
+                console.error('Error fetching lessons:', error);
+            } else if (lessons) {
+                renderLessons(lessons, user);
+            }
         });
     </script>
-
 </body>
 </html>
