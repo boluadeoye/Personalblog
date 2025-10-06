@@ -11,6 +11,7 @@
     <style>
         :root {
             --bg-slate: #2D3748; --accent-gold: #D4AF37; --accent-green: #8A9A5B;
+            --success-green: #22c55e; --error-red: #ef4444;
         }
         body { background-color: #FDFDFD; font-family: 'Lora', serif; color: #1f2937; }
         h1, h2, h3, h4 { font-family: 'Playfair Display', serif; color: var(--bg-slate); }
@@ -19,30 +20,30 @@
         .card-premium-unlocked { border-left: 4px solid var(--accent-gold); }
         .card-premium-locked { border-left: 4px solid #d1d5db; }
         .card-free { border-left: 4px solid var(--accent-green); }
-        .card-tool { border-left: 4px solid #6366f1; }
-
-        .lesson-container { max-width: 800px; margin-left: auto; margin-right: auto; }
+        
+        .lesson-container { max-width: 800px; margin-left: auto; margin-right: auto; padding-left: 1rem; padding-right: 1rem; }
+        #lesson-header { text-align: center; }
+        #lesson-content h1 { font-size: 2.25rem; margin-top: 0; margin-bottom: 1rem; }
         #lesson-content h2 { font-size: 1.75rem; margin-top: 2.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px dashed #d1d5db; }
-        #lesson-content p { font-size: 18px; line-height: 1.8; margin-bottom: 1.5rem; }
-        #lesson-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 24px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        #lesson-content h3 { font-size: 1.5rem; margin-top: 2rem; margin-bottom: 0.75rem; }
+        #lesson-content p { font-size: 18px; line-height: 1.8; margin-bottom: 1.5rem; text-align: left; }
+        #lesson-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.5rem auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: block; }
         #lesson-content blockquote { border-left: 3px solid var(--accent-gold); padding-left: 1.5rem; margin: 1.5rem 0; font-style: italic; color: #555; }
-        #lesson-content ul, #lesson-content ol { margin-left: 1.75rem; margin-bottom: 1.5rem; }
+        #lesson-content ul, #lesson-content ol { margin-left: 1.75rem; margin-bottom: 1.5rem; list-style-position: outside; }
         #lesson-content li { margin-bottom: 0.75rem; padding-left: 0.5rem; }
-
-        /* Styling for AI Features */
-        .gemini-btn {
-            background-color: var(--bg-slate);
-            color: white;
-            transition: background-color 0.3s;
-        }
-        .gemini-btn:hover { background-color: #4a5568; }
-        .gemini-btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
-        #ai-result-box {
-            background-color: #f9fafb;
-            border: 1px solid #e5e7eb;
-            white-space: pre-wrap;
-            font-family: 'Source Sans Pro', sans-serif;
-        }
+        
+        .quiz-section { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-top: 40px; }
+        .quiz-options label { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .quiz-options label:hover { border-color: var(--accent-gold); background: #fffaf0; }
+        .quiz-options input[type="radio"] { display: none; }
+        .quiz-options input[type="radio"]:checked + .option-text { font-weight: 700; color: var(--accent-gold); }
+        .quiz-options label.correct { border-color: var(--success-green); background-color: #f0fff4; }
+        .quiz-options label.incorrect { border-color: var(--error-red); background-color: #fff5f5; }
+        .fill-in-blank-input { border: 1px solid #d1d5db; border-radius: 4px; padding: 4px 8px; font-family: 'Source Sans Pro', sans-serif; }
+        .feedback { margin-top: 1rem; padding: 0.75rem; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+        .feedback.correct { color: var(--success-green); background-color: #f0fff4; border-left: 4px solid var(--success-green); }
+        .feedback.incorrect { color: var(--error-red); background-color: #fff5f5; border-left: 4px solid var(--error-red); }
+        #lesson-spark { margin-top: 48px; padding: 24px; background: var(--bg-slate); color: #e2e8f0; border-radius: 8px; border-left: 4px solid var(--accent-gold); }
     </style>
 </head>
 <body class="text-gray-800">
@@ -69,66 +70,43 @@
         // --- START OF EMBEDDED DATABASE AND AUTH LOGIC ---
         const AppData = {
             lessons: {
-                "sandbox": { "id": "sandbox", "title": "✨ The Writing Sandbox", "access": "free", "summary": "An interactive AI-powered workshop to proofread, refine, and enhance your writing.", "type": "tool" },
-                "gram001": { "id": "gram001", "title": "Mastering Subject-Verb Agreement", "access": "free", "summary": "Learn the foundational rule of English syntax.", "content": "..." },
-                "eng002": { "id": "eng002", "title": "Building Effective Paragraphs", "access": "free", "summary": "Learn to organize ideas into cohesive paragraphs.", "content": "..." },
-                "gram003": { "id": "gram003", "title": "The Art of the Semicolon", "access": "premium", "summary": "Connect related clauses with style.", "content": "..." }
-                // Your full 51 lessons would be here
+                "gram001": { "id": "gram001", "title": "Mastering Subject-Verb Agreement", "access": "free", "summary": "Learn the foundational rule of English syntax.", "insightSpark": "Find a complex paragraph in a book. Why does the subject-verb agreement work?",
+                    "content": `<h2>The Core Rule</h2><p>At its heart, subject-verb agreement is simple: a singular subject takes a singular verb, and a plural subject takes a plural verb. The challenge often lies in correctly identifying the subject and ignoring other nouns in the sentence.</p><h2>Common Pitfalls</h2><p>Prepositional phrases, which begin with words like 'of', 'in', 'between', or 'on', can be misleading. For example, in the sentence "The <strong>box</strong> of apples <strong>is</strong> on the table," the subject is "box," which is singular. The phrase "of apples" simply describes the box, so the verb must agree with "box," not "apples."</p>`,
+                    "quizzes": [{ "type": "multiple-choice", "prompt": "The pack of wolves ___ to the moon.", "options": ["howl", "howls"], "answer": "howls", "explanation": "The subject is 'pack' (singular), so the verb is 'howls'." }]
+                },
+                "gram002": { "id": "gram002", "title": "Mastering Pronoun Usage", "access": "free", "summary": "Avoid ambiguity with correct pronoun usage.", "insightSpark": "Write a sentence where the pronoun 'it' is ambiguous, then rewrite it for clarity.",
+                    "content": `<h2>The Role of the Pronoun</h2><p>Pronouns are the efficient stand-ins of the English language. They take the place of nouns to avoid repetition and make our sentences flow more smoothly.</p><h2>Subject vs. Object Pronouns</h2><p>The most common point of confusion is whether to use a subject pronoun or an object pronoun. The rule is simple:</p><ul><li><strong>Subject Pronouns</strong> perform the action of the verb. They are **I, you, he, she, it, we, they.**</li><li><strong>Object Pronouns** receive the action of the verb. They are **me, you, him, her, it, us, them.**</li></ul><p>A simple trick is to remove the other person from the sentence to see what sounds right. You wouldn't say "Me went to the store," so you know to use "She and I."</p>`,
+                    "quizzes": [
+                        { "type": "multiple-choice", "prompt": "Which sentence is correct?", "options": ["Her and me went to the store.", "She and I went to the store."], "answer": "She and I went to the store.", "explanation": "'She' and 'I' are subject pronouns, used when they are the subject of the verb 'went'." },
+                        { "type": "fill-in-the-blank", "prompt": "The dog wagged ___ tail.", "answer": "its", "explanation": "'Its' is the possessive form of 'it'. 'It's' is a contraction for 'it is'." }
+                    ]
+                },
+                "gram003": { "id": "gram003", "title": "The Art of the Semicolon", "access": "premium", "summary": "Connect related clauses with style.", "insightSpark": "Craft a single, beautiful sentence that correctly uses a semicolon to join two ideas.",
+                    "content": `<h2>Connecting Ideas with Style</h2><p>The semicolon is one of the most elegant and misunderstood punctuation marks. It is used to connect two closely related independent clauses, creating a more sophisticated link than a simple period.</p><blockquote>Example: The presentation was a success; the client was extremely pleased.</blockquote>`,
+                    "quizzes": [{ "type": "sentence-correction", "prompt": "Correct this sentence using a semicolon:", "sentence": "The storm raged on, the house was shaking.", "answer": "The storm raged on; the house was shaking.", "explanation": "A semicolon can join two closely related independent clauses." }]
+                }
+                // ... PASTE THE REST OF YOUR 51 LESSON OBJECTS HERE ...
             },
             authKeys: new Set([ "academy-key-123", "inner-circle-2025", "bolu-vip-access" ])
         };
 
         const AppAuth = {
-            login(key) { if (AppData.authKeys.has(key)) { localStorage.setItem('academy_session_final_v5', 'true'); return true; } return false; },
-            logout() { localStorage.removeItem('academy_session_final_v5'); window.location.hash = ''; },
-            isLoggedIn: () => localStorage.getItem('academy_session_final_v5') === 'true'
+            login(key) { if (AppData.authKeys.has(key)) { localStorage.setItem('academy_session_definitive', 'true'); return true; } return false; },
+            logout() { localStorage.removeItem('academy_session_definitive'); window.location.hash = ''; },
+            isLoggedIn: () => localStorage.getItem('academy_session_definitive') === 'true'
         };
         // --- END OF EMBEDDED LOGIC ---
-
-        // --- NEW: GEMINI API HELPER ---
-        const GeminiHelper = {
-            async generateContent(prompt) {
-                const apiKey = ""; // API key is handled by the environment
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                
-                const payload = {
-                    contents: [{ parts: [{ text: prompt }] }]
-                };
-
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`API request failed with status ${response.status}`);
-                    }
-
-                    const result = await response.json();
-                    return result.candidates?.[0]?.content?.parts?.[0]?.text || "No response text found.";
-                } catch (error) {
-                    console.error("Gemini API Error:", error);
-                    return `Error: Could not get a response. ${error.message}`;
-                }
-            }
-        };
 
         // --- START OF RENDERER ---
         const AppRenderer = {
             renderLibrary(lessons, user) {
                 const container = document.getElementById('app-container');
-                let content = `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="text-center mb-12"><h1 class="text-5xl font-bold">The Library</h1><p class="mt-4 text-lg text-gray-600">Browse lessons and tools to elevate your craft.</p></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">`;
+                let content = `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="text-center mb-12"><h1 class="text-5xl font-bold">The Library</h1><p class="mt-4 text-lg text-gray-600">Browse our collection of lessons on the craft of writing.</p></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">`;
                 Object.values(lessons).forEach(lesson => {
                     const isPremium = lesson.access === 'premium';
-                    const isTool = lesson.type === 'tool';
                     const isLocked = isPremium && !user;
-                    let cardClass = 'card-free';
-                    if (isTool) cardClass = 'card-tool';
-                    if (isPremium) cardClass = isLocked ? 'card-premium-locked' : 'card-premium-unlocked';
-
-                    const href = isLocked ? '#login' : (isTool ? `#${lesson.id}` : `#lesson/${lesson.id}`);
+                    const cardClass = isPremium ? (isLocked ? 'card-premium-locked' : 'card-premium-unlocked') : 'card-free';
+                    const href = isLocked ? '#login' : `#lesson/${lesson.id}`;
                     content += `<a href="${href}" class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 block ${cardClass}"><div class="flex justify-between items-start"><h3 class="text-2xl font-bold pr-4">${lesson.title}</h3>${isPremium ? `<span class="flex-shrink-0 text-lg">${isLocked ? '🔒' : '⭐'}</span>` : ''}</div><p class="text-gray-600 mt-2 text-base">${lesson.summary}</p></a>`;
                 });
                 content += `</div></div>`;
@@ -137,7 +115,7 @@
             renderLesson(lessonId, lessons, user) {
                 const container = document.getElementById('app-container');
                 const lesson = lessons[lessonId];
-                if (!lesson) { container.innerHTML = '<h1>Lesson Not Found</h1>'; return; }
+                if (!lesson) { container.innerHTML = '<h1 class="text-center">Lesson Not Found</h1>'; return; }
                 if (lesson.access === 'premium' && !user) { this.renderLogin("This is a premium lesson. Please enter your access key."); return; }
 
                 container.innerHTML = `
@@ -146,89 +124,43 @@
                             <h1 class="text-5xl font-bold mb-4">${lesson.title}</h1>
                             <p class="text-lg text-gray-600 italic">${lesson.summary}</p>
                         </div>
-                        <div id="lesson-content">${marked.parse(lesson.content || '<p><em>Content coming soon.</em></p>')}</div>
-                        <div class="mt-12 p-6 bg-slate-50 rounded-lg border">
-                             <h3 class="text-2xl mb-4">✨ Dynamic Insight Spark</h3>
-                             <p class="text-gray-600 mb-4">Click the button below to generate a unique, AI-powered creative prompt related to this lesson.</p>
-                             <button id="spark-btn" class="gemini-btn ui-font inline-flex items-center gap-2 px-4 py-2 rounded-md">Generate New Idea</button>
-                             <div id="spark-result" class="mt-4 p-4 bg-white rounded border border-dashed hidden"></div>
-                        </div>
+                        <div id="lesson-content"></div>
+                        <div id="quiz-container" class="mt-12"></div>
+                        <div id="lesson-spark" class="mt-12"></div>
                     </div>`;
                 
-                document.getElementById('spark-btn').addEventListener('click', async () => {
-                    const btn = document.getElementById('spark-btn');
-                    const resultBox = document.getElementById('spark-result');
-                    btn.disabled = true;
-                    btn.textContent = 'Generating...';
-                    resultBox.classList.remove('hidden');
-                    resultBox.textContent = 'Thinking of a new prompt...';
-
-                    const prompt = `Generate a short, unique, and creative writing prompt related to the concept of "${lesson.title}".`;
-                    const result = await GeminiHelper.generateContent(prompt);
-                    
-                    resultBox.textContent = result;
-                    btn.disabled = false;
-                    btn.textContent = 'Generate New Idea';
-                });
-            },
-            renderSandbox() {
-                const container = document.getElementById('app-container');
-                container.innerHTML = `
-                    <div class="max-w-4xl mx-auto">
-                        <div class="text-center mb-12">
-                            <h1 class="text-5xl font-bold">✨ The Writing Sandbox</h1>
-                            <p class="mt-4 text-lg text-gray-600">Your personal AI-powered writing assistant. Write, analyze, and refine.</p>
-                        </div>
-                        <div class="space-y-6">
-                            <textarea id="sandbox-input" class="w-full h-64 p-4 border rounded-lg ui-font" placeholder="Write something here..."></textarea>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <button data-action="proofread" class="gemini-btn ui-font p-3 rounded-md">Proofread</button>
-                                <button data-action="improve" class="gemini-btn ui-font p-3 rounded-md">Improve Clarity</button>
-                                <button data-action="continue" class="gemini-btn ui-font p-3 rounded-md">Continue Writing</button>
-                                <select id="tone-select" class="ui-font p-3 border rounded-md bg-white">
-                                    <option value="">Change Tone...</option>
-                                    <option value="formal">Formal</option>
-                                    <option value="casual">Casual</option>
-                                    <option value="poetic">Poetic</option>
-                                    <option value="mysterious">Mysterious</option>
-                                </select>
-                            </div>
-                             <div id="ai-result-box" class="p-6 rounded-lg hidden min-h-[100px]"></div>
-                        </div>
-                    </div>
-                `;
-
-                document.querySelectorAll('.gemini-btn[data-action]').forEach(btn => {
-                    btn.addEventListener('click', () => this.handleSandboxAction(btn.dataset.action));
-                });
-                document.getElementById('tone-select').addEventListener('change', (e) => {
-                    if (e.target.value) this.handleSandboxAction('tone', e.target.value);
-                });
-            },
-            async handleSandboxAction(action, tone = null) {
-                const input = document.getElementById('sandbox-input').value;
-                const resultBox = document.getElementById('ai-result-box');
-                if (!input.trim()) {
-                    alert("Please write something in the sandbox first.");
-                    return;
+                document.getElementById('lesson-content').innerHTML = marked.parse(lesson.content || '<p><em>Content coming soon.</em></p>');
+                
+                if (lesson.quizzes && lesson.quizzes.length > 0) {
+                    this.renderQuiz(lesson.quizzes);
                 }
                 
-                let prompt = '';
-                switch(action) {
-                    case 'proofread': prompt = `Proofread the following text. List any grammatical errors, spelling mistakes, and punctuation errors. If there are no errors, simply respond with "No errors found."\n\nTEXT: "${input}"`; break;
-                    case 'improve': prompt = `Rewrite the following text to be more clear, concise, and engaging:\n\nTEXT: "${input}"`; break;
-                    case 'continue': prompt = `Continue writing the following text in a natural way:\n\nTEXT: "${input}"`; break;
-                    case 'tone': prompt = `Rewrite the following text to have a ${tone} tone:\n\nTEXT: "${input}"`; break;
+                const sparkContainer = document.getElementById('lesson-spark');
+                if(lesson.insightSpark) {
+                    sparkContainer.innerHTML = `<h3 class="text-2xl mb-4">✨ Insight Spark</h3><p class="ui-font">${lesson.insightSpark}</p>`;
                 }
-
-                resultBox.classList.remove('hidden');
-                resultBox.textContent = `Analyzing your text...`;
-                document.querySelectorAll('.gemini-btn, #tone-select').forEach(el => el.disabled = true);
-
-                const result = await GeminiHelper.generateContent(prompt);
-                resultBox.textContent = result;
-                
-                document.querySelectorAll('.gemini-btn, #tone-select').forEach(el => el.disabled = false);
+            },
+            renderQuiz(quizzes) {
+                const quizContainer = document.getElementById('quiz-container');
+                let quizHtml = '<div class="quiz-section space-y-8"><h3>Knowledge Check</h3>';
+                quizzes.forEach((quiz, index) => {
+                    quizHtml += `<div class="interaction-block" id="quiz-block-${index}">`;
+                    if (quiz.type === 'multiple-choice') {
+                        quizHtml += `<p class="font-bold mb-4 ui-font text-lg">${quiz.prompt}</p><div class="quiz-options space-y-3">`;
+                        quiz.options.forEach((option) => {
+                            quizHtml += `<label class="ui-font"><input type="radio" name="quiz-${index}" value="${option}" class="sr-only"><span class="option-text p-3 border rounded-md block cursor-pointer">${option}</span></label>`;
+                        });
+                        quizHtml += `</div>`;
+                    } else if (quiz.type === 'fill-in-the-blank') {
+                        const promptHtml = quiz.prompt.replace('___', `<input type="text" class="fill-in-blank-input" id="fill-in-${index}">`);
+                        quizHtml += `<p class="font-bold mb-4 ui-font text-lg">${promptHtml}</p>`;
+                    } else if (quiz.type === 'sentence-correction') {
+                        quizHtml += `<p class="font-bold mb-4 ui-font text-lg">${quiz.prompt}</p><p class="italic text-gray-600 mb-2">"${quiz.sentence}"</p><textarea id="sentence-correction-${index}" class="w-full border rounded-md p-2 ui-font" rows="2"></textarea>`;
+                    }
+                    quizHtml += `<button class="mt-4 ui-font bg-slate-800 text-white px-4 py-2 rounded-md" style="background-color: var(--bg-slate);" onclick="AppRouter.checkAnswer(${index})">Check Answer</button><div id="feedback-${index}" class="mt-4"></div></div>`;
+                });
+                quizHtml += '</div>';
+                quizContainer.innerHTML = quizHtml;
             },
             renderLogin(message) {
                 const container = document.getElementById('app-container');
@@ -239,31 +171,69 @@
         // --- END OF RENDERER ---
 
         // --- MAIN ROUTER ---
-        function AppRouter() {
-            const user = AppAuth.isLoggedIn();
-            const route = window.location.hash.substring(1);
-            const authNav = document.getElementById('auth-nav');
-            if (user) {
-                authNav.innerHTML = `<button id="logout-btn" class="font-bold hover:underline" style="color: var(--accent-gold);">Logout</button>`;
-                document.getElementById('logout-btn').addEventListener('click', AppAuth.logout);
-            } else {
-                authNav.innerHTML = `<a href="#login" class="font-bold hover:underline">Member Login</a>`;
-            }
-            if (route.startsWith('lesson/')) {
-                AppRenderer.renderLesson(route.split('/')[1], AppData.lessons, user);
-            } else if (route === 'login') {
-                AppRenderer.renderLogin("Enter your personal access key...");
-            } else if (route === 'sandbox') {
-                AppRenderer.renderSandbox();
-            } else {
-                AppRenderer.renderLibrary(AppData.lessons, user);
-            }
-            feather.replace();
-        }
+        const AppRouter = {
+            run() {
+                const user = AppAuth.isLoggedIn();
+                const route = window.location.hash.substring(1);
+                const authNav = document.getElementById('auth-nav');
+                if (user) {
+                    authNav.innerHTML = `<button id="logout-btn" class="font-bold hover:underline" style="color: var(--accent-gold);">Logout</button>`;
+                    document.getElementById('logout-btn').addEventListener('click', AppAuth.logout);
+                } else {
+                    authNav.innerHTML = `<a href="#login" class="font-bold hover:underline">Member Login</a>`;
+                }
+                if (route.startsWith('lesson/')) {
+                    AppRenderer.renderLesson(route.split('/')[1], AppData.lessons, user);
+                } else if (route === 'login') {
+                    AppRenderer.renderLogin("Enter your personal access key to unlock the premium library.");
+                } else {
+                    AppRenderer.renderLibrary(AppData.lessons, user);
+                }
+                feather.replace();
+            },
+            checkAnswer(quizIndex) {
+                const route = window.location.hash.substring(1);
+                const lessonId = route.split('/')[1];
+                const lesson = AppData.lessons[lessonId];
+                if (!lesson || !lesson.quizzes) return;
 
-        window.addEventListener('hashchange', AppRouter);
-        document.addEventListener('DOMContentLoaded', AppRouter);
+                const quiz = lesson.quizzes[quizIndex];
+                const feedbackEl = document.getElementById(`feedback-${quizIndex}`);
+                let isCorrect = false;
+
+                if (quiz.type === 'multiple-choice') {
+                    const selected = document.querySelector(`input[name="quiz-${quizIndex}"]:checked`);
+                    if (selected && selected.value.toLowerCase() === quiz.answer.toLowerCase()) { isCorrect = true; }
+                    const labels = document.querySelectorAll(`.quiz-options label`);
+                    labels.forEach(label => {
+                        const input = label.querySelector('input');
+                        if (input.value.toLowerCase() === quiz.answer.toLowerCase()) {
+                            label.classList.add('correct');
+                        } else if (input.checked) {
+                            label.classList.add('incorrect');
+                        }
+                    });
+                } else if (quiz.type === 'fill-in-the-blank') {
+                    const input = document.getElementById(`fill-in-${quizIndex}`);
+                    if (input && input.value.trim().toLowerCase() === quiz.answer.toLowerCase()) { isCorrect = true; }
+                } else if (quiz.type === 'sentence-correction') {
+                    const textarea = document.getElementById(`sentence-correction-${quizIndex}`);
+                    if (textarea && textarea.value.trim() === quiz.answer) { isCorrect = true; }
+                }
+
+                const feedback = document.createElement('div');
+                feedback.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+                feedback.innerHTML = `<i data-feather="${isCorrect ? 'check-circle' : 'x-circle'}"></i> <strong>${isCorrect ? 'Correct!' : 'Not quite.'}</strong> ${quiz.explanation}`;
+                feedbackEl.innerHTML = '';
+                feedbackEl.appendChild(feedback);
+                feather.replace();
+                document.querySelector(`#quiz-block-${quizIndex}`).querySelectorAll('button, input, textarea').forEach(el => el.disabled = true);
+            }
+        };
+
+        window.AppRouter = AppRouter; // Make checkAnswer globally accessible
+        window.addEventListener('hashchange', AppRouter.run);
+        document.addEventListener('DOMContentLoaded', AppRouter.run);
     </script>
 </body>
 </html>
-
