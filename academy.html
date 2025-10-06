@@ -3,145 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Academy Entrance</title>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>The Writer's Academy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lora&family=Source+Sans+Pro&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
     <style>
         :root {
-            --bg-slate: #2D3748; --panel-cream: #F7FAFC; --accent-gold: #D69E2E; --accent-ink: #6A7A94;
-            --text-dark: #2D3748; --text-muted: #718096; --font-body: 'Lora', serif; --font-ui: 'Inter', sans-serif;
+            --bg-slate: #2D3748;
+            --accent-gold: #D4AF37;
+            --accent-green: #8A9A5B;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: linear-gradient(180deg, var(--bg-slate) 0%, #1a2634 100%);
-            min-height: 100vh;
-            font-family: var(--font-ui);
-            color: var(--text-dark);
-            padding-top: 64px; /* For fixed header */
-        }
-        a { text-decoration: none; color: inherit; }
-        header {
-            position: fixed; top: 0; left: 0; right: 0; background: var(--bg-slate); padding: 0 16px; 
-            display: flex; align-items: center; justify-content: space-between; 
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); z-index: 1000; height: 64px;
-        }
-        .exit-link svg { width: 24px; height: 24px; stroke: var(--accent-ink); transition: stroke 0.2s; }
-        .exit-link:hover svg { stroke: var(--accent-gold); }
-        .brand-group { display: flex; align-items: center; }
-        .brand-text { color: var(--panel-cream); font-weight: 600; font-size: 20px; margin-left: 8px; }
-        header .logo { width: 32px; height: 32px; }
-
-        .workspace {
-            background: var(--panel-cream); border-radius: 8px; padding: 32px;
-            max-width: 1200px; width: 95%; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            text-align: center; margin: 32px auto;
-        }
-        .workspace h1 { font-size: 32px; margin-bottom: 32px; color: var(--text-dark); font-family: var(--font-body); }
-        
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; }
-        .card {
-            background: white; border-radius: 8px; padding: 24px; text-align: center;
-            transition: transform 0.3s, box-shadow 0.3s; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center;
-        }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
-        .card h2 { font-size: 22px; font-weight: 600; color: var(--text-dark); margin-bottom: 12px; font-family: var(--font-body); }
-        .card p { color: var(--text-muted); font-size: 16px; line-height: 1.6; }
-        .card:hover h2 { color: var(--accent-gold); }
-        
-        /* --- Featured Lesson Section --- */
-        #featured-lesson-container {
-            margin-top: 0; padding-top: 0;
-            background: transparent; box-shadow: none;
-        }
-        .featured-lesson-card {
-            background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            text-align: left; display: block; padding: 24px;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        .featured-lesson-card:hover { transform: translateY(-5px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
-        .featured-lesson-card h3 { font-size: 24px; color: var(--accent-gold); margin-bottom: 8px; }
-        .featured-lesson-card p { font-size: 16px; color: var(--text-muted); }
-
-        footer { text-align: center; padding: 48px 0 16px 0; color: var(--accent-ink); font-size: 14px; width: 100%; }
+        body { background-color: #FDFDFD; font-family: 'Lora', serif; }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+        .ui-font { font-family: 'Source Sans Pro', sans-serif; }
+        header { background-color: var(--bg-slate); }
+        .card-premium-unlocked { border-left: 4px solid var(--accent-gold); }
+        .card-premium-locked { border-left: 4px solid #d1d5db; }
+        .card-free { border-left: 4px solid var(--accent-green); }
+        #lesson-content h2 { font-size: 28px; color: var(--bg-slate); margin-top: 40px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
+        #lesson-content p { font-size: 18px; line-height: 1.8; margin-bottom: 1.5rem; }
     </style>
 </head>
-<body>
-    <header>
-        <a href="https://boluadeoye.vercel.app/" class="exit-link" title="Return to Main Website">
-             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline>
-            </svg>
-        </a>
-        <div class="brand-group">
-            <svg class="logo" viewBox="0 0 24 24"><path d="M12 2 L2 22 H22 Z M12 6 L18.3 18 H5.7 Z" fill="var(--accent-gold)"/></svg>
-            <span class="brand-text">The Academy</span>
-        </div>
+<body class="text-gray-800">
+
+    <header class="text-white shadow-lg">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <a href="./academy.html" class="flex items-center gap-2">
+                    <svg class="h-8 w-8" viewBox="0 0 24 24"><path d="M12 2 L2 22 H22 Z M12 6 L18.3 18 H5.7 Z" fill="var(--accent-gold)"/></svg>
+                    <span class="font-bold text-2xl">The Academy</span>
+                </a>
+                <div id="auth-nav" class="text-sm ui-font"></div>
+            </div>
+        </nav>
     </header>
 
-    <main>
-        <section class="workspace">
-            <h1>The Academy Lobby</h1>
-            <div class="grid">
-                <a href="./index.html" class="card">
-                    <h2>📚 The Scriptorium</h2>
-                    <p>Enter the complete library of lessons covering grammar, syntax, and the core foundations of writing.</p>
-                </a>
-                <a href="./rhythm-lab.html" class="card">
-                    <h2>🎼 The Rhythm & Meter Lab</h2>
-                    <p>An interactive canvas to visualize and hear the music of your words. (Coming Soon)</p>
-                </a>
-                <a href="./index.html" class="card">
-                    <h2>✨ The Lyceum</h2>
-                    <p>Explore the full library for deep dives into the advanced art of prose and storytelling.</p>
-                </a>
-            </div>
-        </section>
+    <main id="app-container" class="py-12"></main>
 
-        <section id="featured-lesson-container" class="workspace">
-            </section>
-    </main>
-    
-    <footer class="main-footer">
-        <p>© 2025 Boluadeoye • Crafted with passion</p>
+    <footer class="mt-24 py-8 text-center text-gray-400" style="background-color: var(--bg-slate);">
+        <p class="ui-font">© 2025 Boluadeoye • Crafted with passion</p>
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const fetchDatabase = async () => {
+        // --- START OF EMBEDDED DATABASE AND AUTH LOGIC ---
+
+        const AppData = {
+            // Your entire academy-data.json is now here
+            lessons: {
+                "gram001": { "id": "gram001", "title": "Mastering Subject-Verb Agreement", "access": "free", "category": "English Language", "tags": ["grammar", "foundations"], "summary": "Learn the foundational rule of English syntax.", "difficulty": "Beginner", "contentFile": "gram001.md" },
+                "gram002": { "id": "gram002", "title": "Mastering Pronoun Usage", "access": "free", "category": "English Language", "tags": ["grammar", "clarity"], "summary": "Avoid ambiguity with correct pronoun usage.", "difficulty": "Beginner", "contentFile": "gram002.md" },
+                "gram003": { "id": "gram003", "title": "The Art of the Semicolon", "access": "premium", "category": "English Language", "tags": ["punctuation", "style"], "summary": "Connect related independent clauses with style.", "difficulty": "Intermediate", "contentFile": "gram003.md" }
+                // ... ALL 51 of your lessons would be pasted here ...
+            },
+            // The secure, hashed keys are also here
+            authKeys: new Set([
+                "1f43899a613c90714c6b8a82914207906b864b41a02715761358606c116d123d" // Hash for "academy-key-123"
+            ])
+        };
+
+        const AppAuth = {
+            async sha256(message) {
+                const msgBuffer = new TextEncoder().encode(message);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            },
+            async login(key) {
+                const keyHash = await this.sha256(key);
+                if (AppData.authKeys.has(keyHash)) {
+                    localStorage.setItem('academy_session', 'true');
+                    return true;
+                }
+                return false;
+            },
+            logout() {
+                localStorage.removeItem('academy_session');
+                window.location.hash = ''; // Go back to the library view
+            },
+            isLoggedIn: () => localStorage.getItem('academy_session') === 'true'
+        };
+
+        // --- END OF EMBEDDED DATABASE AND AUTH LOGIC ---
+
+
+        // --- START OF THE APPLICATION RENDERER ---
+
+        const AppRenderer = {
+            renderLibrary(lessons, user) {
+                const container = document.getElementById('app-container');
+                let content = `
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="text-center mb-12">
+                            <h1 class="text-5xl font-bold" style="color: var(--bg-slate);">The Library</h1>
+                            <p class="mt-4 text-lg text-gray-600">Browse our collection of lessons on the craft of writing.</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">`;
+                
+                for (const lesson of Object.values(lessons)) {
+                    const isPremium = lesson.access === 'premium';
+                    const isLocked = isPremium && !user;
+                    const cardClass = isPremium ? (isLocked ? 'card-premium-locked' : 'card-premium-unlocked') : 'card-free';
+                    const href = isLocked ? '#login' : `#lesson/${lesson.id}`;
+
+                    content += `
+                        <a href="${href}" class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 block ${cardClass}">
+                            <div class="flex justify-between items-start">
+                                <h3 class="text-2xl font-bold pr-4" style="color: var(--bg-slate);">${lesson.title}</h3>
+                                ${isPremium ? `<span class="flex-shrink-0 text-lg">${isLocked ? '🔒' : '⭐'}</span>` : ''}
+                            </div>
+                            <p class="text-gray-600 mt-2 text-base">${lesson.summary}</p>
+                        </a>`;
+                }
+                content += `</div></div>`;
+                container.innerHTML = content;
+            },
+            async renderLesson(lessonId, lessons, user) {
+                const container = document.getElementById('app-container');
+                const lesson = lessons[lessonId];
+                if (!lesson) {
+                    container.innerHTML = '<h1>Lesson Not Found</h1>';
+                    return;
+                }
+
+                const isPremium = lesson.access === 'premium';
+                if (isPremium && !user) {
+                    this.renderLogin("You must be logged in to view this premium lesson.");
+                    return;
+                }
+
+                container.innerHTML = `<div class="max-w-4xl mx-auto"><h1 class="text-5xl font-bold mb-4" style="color: var(--bg-slate);">${lesson.title}</h1><p class="text-lg text-gray-600 mb-8 italic">${lesson.summary}</p><div id="lesson-content">Loading content...</div></div>`;
+                
                 try {
-                    const response = await fetch('academy-data.json');
-                    if (!response.ok) { throw new Error('Network response was not ok'); }
-                    const data = await response.json();
-                    return data.topics;
-                } catch (error) {
-                    console.error('Failed to load the academy database:', error);
-                    return null;
+                    const response = await fetch(`./lessons/${lesson.contentFile}`);
+                    if (!response.ok) throw new Error('Markdown content not found.');
+                    const markdown = await response.text();
+                    document.getElementById('lesson-content').innerHTML = marked.parse(markdown);
+                } catch (e) {
+                    document.getElementById('lesson-content').innerHTML = `<p class="text-red-500">Error: Lesson content could not be loaded.</p>`;
                 }
-            };
+            },
+            renderLogin(message = "Enter your personal access key to unlock the premium library.") {
+                const container = document.getElementById('app-container');
+                container.innerHTML = `
+                    <div class="max-w-md mx-auto mt-10 p-8 space-y-6 bg-white rounded-lg shadow-xl">
+                        <div class="text-center">
+                            <h1 class="text-3xl font-bold">Member Access</h1>
+                            <p class="mt-2 text-sm text-gray-600">${message}</p>
+                        </div>
+                        <form id="login-form" class="space-y-6">
+                            <input id="access-key" type="text" required class="relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 rounded-md" placeholder="Your Personal Access Key">
+                            <p id="error-message" class="text-sm text-red-600 hidden"></p>
+                            <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white" style="background-color: var(--bg-slate);">Unlock Academy</button>
+                        </form>
+                    </div>`;
+                
+                document.getElementById('login-form').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const key = document.getElementById('access-key').value;
+                    const success = await AppAuth.login(key);
+                    if (success) {
+                        window.location.hash = ''; // Go to library on success
+                    } else {
+                        document.getElementById('error-message').textContent = 'Invalid access key.';
+                        document.getElementById('error-message').classList.remove('hidden');
+                    }
+                });
+            }
+        };
 
-            const renderFeaturedLesson = (topic) => {
-                const container = document.getElementById('featured-lesson-container');
-                if (!topic || !container) return;
+        // --- END OF THE APPLICATION RENDERER ---
 
-                const card = document.createElement('a');
-                card.className = 'featured-lesson-card';
-                card.href = `lesson.html?id=${topic.id}`;
-                card.innerHTML = `
-                    <h3>Start Your Journey →</h3>
-                    <p>Begin with our foundational lesson: <strong>${topic.title}</strong></p>
-                `;
-                container.appendChild(card);
-            };
 
-            const initializeHub = async () => {
-                const topics = await fetchDatabase();
-                if (topics && topics.gram001) {
-                    renderFeaturedLesson(topics.gram001);
-                }
-            };
+        // --- MAIN ROUTER AND INITIALIZATION ---
 
-            initializeHub();
-        });
+        function AppRouter() {
+            const user = AppAuth.isLoggedIn();
+            const route = window.location.hash.substring(1);
+            
+            // Update Auth Nav
+            const authNav = document.getElementById('auth-nav');
+            if (user) {
+                authNav.innerHTML = `<button id="logout-btn" class="font-bold hover:underline" style="color: var(--accent-gold);">Logout</button>`;
+                document.getElementById('logout-btn').addEventListener('click', AppAuth.logout);
+            } else {
+                authNav.innerHTML = `<a href="#login" class="font-bold hover:underline">Member Login</a>`;
+            }
+
+            // Route to the correct view
+            if (route.startsWith('lesson/')) {
+                const lessonId = route.split('/')[1];
+                AppRenderer.renderLesson(lessonId, AppData.lessons, user);
+            } else if (route === 'login') {
+                AppRenderer.renderLogin();
+            } else {
+                AppRenderer.renderLibrary(AppData.lessons, user);
+            }
+            feather.replace();
+        }
+
+        // Listen for URL hash changes and run the router
+        window.addEventListener('hashchange', AppRouter);
+        // Run the router on initial page load
+        document.addEventListener('DOMContentLoaded', AppRouter);
+
     </script>
 </body>
 </html>
