@@ -1,42 +1,44 @@
-// --- The Writer's Academy Authentication System ---
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-const VALID_KEY_HASHES = new Set([
-    "1f43899a613c90714c6b8a82914207906b864b41a02715761358606c116d123d" // Hash for "academy-key-123"
-]);
+// --- PASTE YOUR SUPABASE CREDENTIALS HERE ---
+const SUPABASE_URL = 'https://tymxwenhyhzzpanncbym.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5bXh3ZW5oeWh6enBhbm5jYnltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NTQwMjEsImV4cCI6MjA3NTMzMDAyMX0.qQZakoPPmwE2zEBDEra5JM0aI0_3joxlSc5SJ9XZDP0';
+// ---------------------------------------------
+
+const supabase = createClient(https://tymxwenhyhzzpanncbym.supabase.co, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5bXh3ZW5oeWh6enBhbm5jYnltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NTQwMjEsImV4cCI6MjA3NTMzMDAyMX0.qQZakoPPmwE2zEBDEra5JM0aI0_3joxlSc5SJ9XZDP0);
 
 const auth = {
-    async sha256(message) {
-        const msgBuffer = new TextEncoder().encode(message);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    // Get the currently logged-in user
+    getUser: () => supabase.auth.user(),
+
+    // Sign in a user with their email and password
+    login: async (email, password) => {
+        const { user, error } = await supabase.auth.signIn({ email, password });
+        return { user, error };
     },
 
-    async login(key) {
-        const keyHash = await this.sha256(key);
-        if (VALID_KEY_HASHES.has(keyHash)) {
-            localStorage.setItem('academy_session_token', JSON.stringify({ loggedIn: true, timestamp: Date.now() }));
-            return true;
-        }
-        return false;
+    // Sign out the current user
+    logout: async () => {
+        await supabase.auth.signOut();
+        window.location.href = './index.html'; // Redirect to home after logout
     },
 
-    logout() {
-        localStorage.removeItem('academy_session_token');
-        window.location.href = './index.html';
-    },
-
-    isLoggedIn() {
-        const token = localStorage.getItem('academy_session_token');
-        if (!token) return false;
-        return JSON.parse(token).loggedIn === true;
-    },
-
-    async generateKey() {
-        const newKey = `academy-key-${Math.random().toString(36).substr(2, 9)}`;
-        const newHash = await this.sha256(newKey);
-        return { newKey, newHash };
+    // A listener that triggers when the user's auth state changes (login/logout)
+    onAuthStateChange: (callback) => {
+        supabase.auth.onAuthStateChange((event, session) => {
+            callback(session?.user || null);
+        });
     }
 };
 
-export { auth };
+const database = {
+    // Fetch all lessons based on whether the user is logged in
+    async getLessons() {
+        // Supabase RLS automatically filters the lessons based on the user's auth state
+        const { data, error } = await supabase.from('lessons').select('*').order('id');
+        return { data, error };
+    }
+};
+
+// Export the auth and database objects to be used by other pages
+export { auth, database };
