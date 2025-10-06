@@ -78,10 +78,10 @@
     </main>
     <footer><p>© 2025 Boluadeoye • Crafted with passion</p></footer>
 
-    <!-- CORRECTED SCRIPT SECTION -->
-    <script type="module" src="./auth.js"></script>
+    <!-- CORRECTED SCRIPT SECTION: Single module script -->
     <script type="module">
-        // Now that auth.js is loaded as a module, this script can use it.
+        import { auth } from './auth.js';
+
         document.addEventListener('DOMContentLoaded', async () => {
             
             const fetchDatabase = async () => {
