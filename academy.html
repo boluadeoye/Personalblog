@@ -11,7 +11,6 @@
     <style>
         :root {
             --bg-slate: #2D3748; --accent-gold: #D4AF37; --accent-green: #8A9A5B;
-            --success-green: #38A169; --error-red: #E53E3E; --intermediate-blue: #3182CE;
         }
         body { background-color: #FDFDFD; font-family: 'Lora', serif; color: #333; }
         h1, h2, h3, h4 { font-family: 'Playfair Display', serif; color: var(--bg-slate); }
@@ -21,7 +20,8 @@
         .card-premium-locked { border-left: 4px solid #d1d5db; }
         .card-free { border-left: 4px solid var(--accent-green); }
         
-        /* --- NEW: Sophisticated Lesson Content Styling --- */
+        /* --- REDESIGNED & CORRECTED LESSON STYLING --- */
+        .lesson-container { max-width: 800px; margin-left: auto; margin-right: auto; }
         #lesson-content h2 { font-size: 1.75rem; margin-top: 2.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px dashed #d1d5db; }
         #lesson-content h3 { font-size: 1.5rem; margin-top: 2rem; margin-bottom: 0.75rem; }
         #lesson-content p { font-size: 18px; line-height: 1.8; margin-bottom: 1.5rem; }
@@ -29,17 +29,6 @@
         #lesson-content blockquote { border-left: 3px solid var(--accent-gold); padding-left: 1.5rem; margin: 1.5rem 0; font-style: italic; color: #555; }
         #lesson-content ul, #lesson-content ol { margin-left: 1.75rem; margin-bottom: 1.5rem; }
         #lesson-content li { margin-bottom: 0.75rem; padding-left: 0.5rem; }
-        
-        .quiz-section { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-top: 40px; }
-        .quiz-options label { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
-        .quiz-options label:hover { border-color: var(--accent-gold); background: #fffaf0; }
-        .quiz-options input[type="radio"] { display: none; }
-        .quiz-options input[type="radio"]:checked + .option-text { font-weight: 700; color: var(--accent-gold); }
-        .quiz-options label.correct { border-color: var(--success-green); background: #f0fff4; }
-        .quiz-options label.incorrect { border-color: var(--error-red); background: #fff5f5; }
-        .feedback { margin-top: 1rem; padding: 0.75rem; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
-        .feedback.correct { color: var(--success-green); background-color: #f0fff4; border-left: 4px solid var(--success-green); }
-        .feedback.incorrect { color: var(--error-red); background-color: #fff5f5; border-left: 4px solid var(--error-red); }
     </style>
 </head>
 <body class="text-gray-800">
@@ -66,54 +55,59 @@
         // --- START OF EMBEDDED DATABASE AND AUTH LOGIC ---
         const AppData = {
             lessons: {
-                // All 51 lessons would go here. Using a sample for brevity.
-                "gram001": { "id": "gram001", "title": "Mastering Subject-Verb Agreement", "access": "free", "summary": "Learn the foundational rule of English syntax for clear and professional writing.", "contentFile": "gram001/content.md" },
-                "eng002": { "id": "eng002", "title": "Building Effective Paragraphs", "access": "free", "summary": "Learn to organize ideas into cohesive paragraphs with topic sentences, supporting details, and transitions.", "contentFile": "eng002/content.md" },
-                "gram003": { "id": "gram003", "title": "The Art of the Semicolon", "access": "premium", "summary": "Learn the proper use of the semicolon to connect related independent clauses with style and precision.", "contentFile": "gram003/content.md" }
+                "gram001": { "id": "gram001", "title": "Mastering Subject-Verb Agreement", "access": "free", "summary": "Learn the foundational rule of English syntax.", "contentFile": "gram001/content.md" },
+                "eng002": { "id": "eng002", "title": "Building Effective Paragraphs", "access": "free", "summary": "Learn to organize ideas into cohesive paragraphs.", "contentFile": "eng002/content.md" },
+                "gram003": { "id": "gram003", "title": "The Art of the Semicolon", "access": "premium", "summary": "Connect related clauses with style.", "contentFile": "gram003/content.md" },
+                // ... All 51 lessons would be here. This is a sample.
             },
-            authKeys: new Set([ "academy-key-123", "inner-circle-2025", "bolu-vip-access" ])
+            authKeys: new Set([ "academy-key-122", "academy-key-123", "inner-circle-2025", "bolu-vip-access" ])
         };
 
         const AppAuth = {
             login(key) {
                 if (AppData.authKeys.has(key)) {
-                    localStorage.setItem('academy_session_final', 'true');
+                    localStorage.setItem('academy_session_final_v2', 'true');
                     return true;
                 }
                 return false;
             },
             logout() {
-                localStorage.removeItem('academy_session_final');
+                localStorage.removeItem('academy_session_final_v2');
                 window.location.hash = '';
             },
-            isLoggedIn: () => localStorage.getItem('academy_session_final') === 'true'
+            isLoggedIn: () => localStorage.getItem('academy_session_final_v2') === 'true'
         };
         // --- END OF EMBEDDED LOGIC ---
 
         // --- START OF RENDERER ---
         const AppRenderer = {
             renderLibrary(lessons, user) {
-                // This function remains unchanged
                 const container = document.getElementById('app-container');
                 let content = `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="text-center mb-12"><h1 class="text-5xl font-bold">The Library</h1><p class="mt-4 text-lg text-gray-600">Browse our collection of lessons on the craft of writing.</p></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">`;
-                Object.values(lessons).forEach(lesson => { const isPremium = lesson.access === 'premium'; const isLocked = isPremium && !user; const cardClass = isPremium ? (isLocked ? 'card-premium-locked' : 'card-premium-unlocked') : 'card-free'; const href = isLocked ? '#login' : `#lesson/${lesson.id}`; content += `<a href="${href}" class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 block ${cardClass}"><div class="flex justify-between items-start"><h3 class="text-2xl font-bold pr-4">${lesson.title}</h3>${isPremium ? `<span class="flex-shrink-0 text-lg">${isLocked ? '🔒' : '⭐'}</span>` : ''}</div><p class="text-gray-600 mt-2 text-base">${lesson.summary}</p></a>`; });
-                content += `</div></div>`; container.innerHTML = content;
+                Object.values(lessons).forEach(lesson => {
+                    const isPremium = lesson.access === 'premium';
+                    const isLocked = isPremium && !user;
+                    const cardClass = isPremium ? (isLocked ? 'card-premium-locked' : 'card-premium-unlocked') : 'card-free';
+                    const href = isLocked ? '#login' : `#lesson/${lesson.id}`;
+                    content += `<a href="${href}" class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 block ${cardClass}"><div class="flex justify-between items-start"><h3 class="text-2xl font-bold pr-4">${lesson.title}</h3>${isPremium ? `<span class="flex-shrink-0 text-lg">${isLocked ? '🔒' : '⭐'}</span>` : ''}</div><p class="text-gray-600 mt-2 text-base">${lesson.summary}</p></a>`;
+                });
+                content += `</div></div>`;
+                container.innerHTML = content;
             },
             async renderLesson(lessonId, lessons, user) {
-                // --- THIS IS THE REDESIGNED LESSON RENDERER ---
                 const container = document.getElementById('app-container');
                 const lesson = lessons[lessonId];
-                if (!lesson) { container.innerHTML = '<h1>Lesson Not Found</h1>'; return; }
+                if (!lesson) { container.innerHTML = '<h1 class="text-center">Lesson Not Found</h1>'; return; }
                 if (lesson.access === 'premium' && !user) { this.renderLogin("This is a premium lesson. Please enter your access key."); return; }
 
+                // This is the corrected, simplified layout structure
                 container.innerHTML = `
-                    <div class="max-w-3xl mx-auto">
+                    <div class="lesson-container">
                         <div id="lesson-header" class="mb-8 border-b pb-6">
                             <h1 class="text-5xl font-bold mb-4">${lesson.title}</h1>
                             <p class="text-lg text-gray-600 italic">${lesson.summary}</p>
                         </div>
-                        <div id="lesson-content">Loading...</div>
-                        <!-- Quizzes and other interactive elements will be appended here -->
+                        <div id="lesson-content">Loading content...</div>
                     </div>`;
                 
                 try {
@@ -123,11 +117,10 @@
                     marked.setOptions({ baseUrl: `./lessons/${lesson.id}/` });
                     document.getElementById('lesson-content').innerHTML = marked.parse(markdown);
                 } catch (e) {
-                    document.getElementById('lesson-content').innerHTML = `<p class="text-red-500">Error: Could not load the content file for this lesson.</p>`;
+                    document.getElementById('lesson-content').innerHTML = `<p class="text-red-500">Error: Could not load the content for this lesson.</p>`;
                 }
             },
             renderLogin(message) {
-                // This function remains unchanged
                 const container = document.getElementById('app-container');
                 container.innerHTML = `<div class="max-w-md mx-auto mt-10 p-8 space-y-6 bg-white rounded-lg shadow-xl"><div class="text-center"><h1 class="text-3xl font-bold">Member Access</h1><p class="mt-2 text-sm text-gray-600">${message}</p></div><form id="login-form" class="space-y-6"><input id="access-key" type="text" required class="relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 rounded-md ui-font" placeholder="Your Personal Access Key"><p id="error-message" class="text-sm text-red-600 hidden"></p><button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white ui-font" style="background-color: var(--bg-slate);">Unlock Academy</button></form></div>`;
                 document.getElementById('login-form').addEventListener('submit', (e) => { e.preventDefault(); const key = document.getElementById('access-key').value; if (AppAuth.login(key)) { window.location.hash = ''; } else { const errorMsg = document.getElementById('error-message'); errorMsg.textContent = 'Invalid access key.'; errorMsg.classList.remove('hidden'); } });
@@ -135,7 +128,7 @@
         };
         // --- END OF RENDERER ---
 
-        // --- MAIN ROUTER AND INITIALIZATION ---
+        // --- MAIN ROUTER ---
         function AppRouter() {
             const user = AppAuth.isLoggedIn();
             const route = window.location.hash.substring(1);
