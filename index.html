@@ -58,7 +58,6 @@
         const urlParams = new URLSearchParams(window.location.search);
         const view = urlParams.get('view');
 
-        // Update titles based on view filter
         if (view === 'scriptorium') {
             libraryTitle.textContent = 'The Scriptorium';
             librarySubtitle.textContent = 'Lessons focused on the mechanics and grammar of language.';
@@ -68,18 +67,19 @@
         }
         
         function renderLessons(lessons, user) {
-            libraryGrid.innerHTML = ''; // Clear loading state
+            libraryGrid.innerHTML = '';
             
-            // CORRECTED LOGIC: Determine which tags to show if no view is specified.
-            const defaultTags = ['scriptorium', 'lyceum'];
-            const tagsToShow = view ? [view] : defaultTags;
-
-            const filteredLessons = lessons.filter(topic => 
-                topic.tags && topic.tags.some(tag => tagsToShow.includes(tag))
-            );
+            const filteredLessons = lessons.filter(topic => {
+                // If a 'view' is specified, the topic must have that tag.
+                if (view) {
+                    return topic.tags && topic.tags.includes(view);
+                }
+                // If no 'view' is specified, show all lessons.
+                return true;
+            });
 
             if (filteredLessons.length === 0) {
-                 libraryGrid.innerHTML = '<p class="ui-font col-span-full text-center text-gray-500">No lessons found for this view.</p>';
+                 libraryGrid.innerHTML = '<p class="ui-font col-span-full text-center text-gray-500">No lessons to display.</p>';
                  return;
             }
 
@@ -117,10 +117,12 @@
             
             const { data: lessons, error } = await database.getLessons();
             if (error) {
-                libraryGrid.innerHTML = '<p class="text-red-500">Error loading lessons. Please check your connection and refresh.</p>';
+                libraryGrid.innerHTML = '<p class="text-red-500">Error: Could not connect to the database. Please check your Supabase setup and refresh.</p>';
                 console.error('Error fetching lessons:', error);
             } else if (lessons) {
                 renderLessons(lessons, user);
+            } else {
+                libraryGrid.innerHTML = '<p class="text-yellow-600">No lessons were returned from the database.</p>';
             }
         });
     </script>
