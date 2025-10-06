@@ -9,11 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
     <style>
-        :root {
-            --bg-slate: #2D3748;
-            --accent-gold: #D4AF37;
-            --accent-green: #8A9A5B;
-        }
+        :root { --bg-slate: #2D3748; --accent-gold: #D4AF37; --accent-green: #8A9A5B; }
         body { background-color: #FDFDFD; font-family: 'Lora', serif; }
         h1, h2, h3 { font-family: 'Playfair Display', serif; }
         .ui-font { font-family: 'Source Sans Pro', sans-serif; }
@@ -47,48 +43,38 @@
 
     <script>
         // --- START OF EMBEDDED DATABASE AND AUTH LOGIC ---
-
         const AppData = {
-            // Your entire academy-data.json is now here
             lessons: {
-                "gram001": { "id": "gram001", "title": "Mastering Subject-Verb Agreement", "access": "free", "category": "English Language", "tags": ["grammar", "foundations"], "summary": "Learn the foundational rule of English syntax.", "difficulty": "Beginner", "contentFile": "gram001.md" },
-                "gram002": { "id": "gram002", "title": "Mastering Pronoun Usage", "access": "free", "category": "English Language", "tags": ["grammar", "clarity"], "summary": "Avoid ambiguity with correct pronoun usage.", "difficulty": "Beginner", "contentFile": "gram002.md" },
-                "gram003": { "id": "gram003", "title": "The Art of the Semicolon", "access": "premium", "category": "English Language", "tags": ["punctuation", "style"], "summary": "Connect related independent clauses with style.", "difficulty": "Intermediate", "contentFile": "gram003.md" }
-                // ... ALL 51 of your lessons would be pasted here ...
+                "gram001": { "id": "gram001", "title": "Mastering Subject-Verb Agreement", "access": "free", "summary": "Learn the foundational rule of English syntax for clear and professional writing.", "contentFile": "gram001/content.md" },
+                "gram002": { "id": "gram002", "title": "Mastering Pronoun Usage", "access": "free", "summary": "Explore the types and rules of pronouns to avoid ambiguity and ensure smooth readability.", "contentFile": "gram002/content.md" },
+                "gram003": { "id": "gram003", "title": "The Art of the Semicolon", "access": "premium", "summary": "Learn the proper use of the semicolon to connect related independent clauses with style and precision.", "contentFile": "gram003/content.md" }
+                // ... The full 51 lessons would be here. This is a sample.
             },
-            // The secure, hashed keys are also here
+            // --- PLAIN TEXT KEYS for 100% RELIABILITY ---
             authKeys: new Set([
-                "1f43899a613c90714c6b8a82914207906b864b41a02715761358606c116d123d" // Hash for "academy-key-123"
+                "academy-key-123",
+                "inner-circle-2025",
+                "bolu-vip-access"
             ])
         };
 
         const AppAuth = {
-            async sha256(message) {
-                const msgBuffer = new TextEncoder().encode(message);
-                const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            },
-            async login(key) {
-                const keyHash = await this.sha256(key);
-                if (AppData.authKeys.has(keyHash)) {
-                    localStorage.setItem('academy_session', 'true');
+            login(key) {
+                if (AppData.authKeys.has(key)) {
+                    localStorage.setItem('academy_session_2025', 'true');
                     return true;
                 }
                 return false;
             },
             logout() {
-                localStorage.removeItem('academy_session');
+                localStorage.removeItem('academy_session_2025');
                 window.location.hash = ''; // Go back to the library view
             },
-            isLoggedIn: () => localStorage.getItem('academy_session') === 'true'
+            isLoggedIn: () => localStorage.getItem('academy_session_2025') === 'true'
         };
-
         // --- END OF EMBEDDED DATABASE AND AUTH LOGIC ---
 
-
         // --- START OF THE APPLICATION RENDERER ---
-
         const AppRenderer = {
             renderLibrary(lessons, user) {
                 const container = document.getElementById('app-container');
@@ -121,10 +107,7 @@
             async renderLesson(lessonId, lessons, user) {
                 const container = document.getElementById('app-container');
                 const lesson = lessons[lessonId];
-                if (!lesson) {
-                    container.innerHTML = '<h1>Lesson Not Found</h1>';
-                    return;
-                }
+                if (!lesson) { container.innerHTML = '<h1>Lesson Not Found</h1>'; return; }
 
                 const isPremium = lesson.access === 'premium';
                 if (isPremium && !user) {
@@ -135,12 +118,13 @@
                 container.innerHTML = `<div class="max-w-4xl mx-auto"><h1 class="text-5xl font-bold mb-4" style="color: var(--bg-slate);">${lesson.title}</h1><p class="text-lg text-gray-600 mb-8 italic">${lesson.summary}</p><div id="lesson-content">Loading content...</div></div>`;
                 
                 try {
+                    // Assumes your lessons are in /lessons/{id}/{contentFile}
                     const response = await fetch(`./lessons/${lesson.contentFile}`);
                     if (!response.ok) throw new Error('Markdown content not found.');
                     const markdown = await response.text();
                     document.getElementById('lesson-content').innerHTML = marked.parse(markdown);
                 } catch (e) {
-                    document.getElementById('lesson-content').innerHTML = `<p class="text-red-500">Error: Lesson content could not be loaded.</p>`;
+                    document.getElementById('lesson-content').innerHTML = `<p class="text-red-500">Error: Lesson content file could not be loaded.</p>`;
                 }
             },
             renderLogin(message = "Enter your personal access key to unlock the premium library.") {
@@ -158,30 +142,27 @@
                         </form>
                     </div>`;
                 
-                document.getElementById('login-form').addEventListener('submit', async (e) => {
+                document.getElementById('login-form').addEventListener('submit', (e) => {
                     e.preventDefault();
                     const key = document.getElementById('access-key').value;
-                    const success = await AppAuth.login(key);
+                    const success = AppAuth.login(key);
                     if (success) {
                         window.location.hash = ''; // Go to library on success
                     } else {
-                        document.getElementById('error-message').textContent = 'Invalid access key.';
-                        document.getElementById('error-message').classList.remove('hidden');
+                        const errorMsg = document.getElementById('error-message');
+                        errorMsg.textContent = 'Invalid access key.';
+                        errorMsg.classList.remove('hidden');
                     }
                 });
             }
         };
-
         // --- END OF THE APPLICATION RENDERER ---
 
-
         // --- MAIN ROUTER AND INITIALIZATION ---
-
         function AppRouter() {
             const user = AppAuth.isLoggedIn();
             const route = window.location.hash.substring(1);
             
-            // Update Auth Nav
             const authNav = document.getElementById('auth-nav');
             if (user) {
                 authNav.innerHTML = `<button id="logout-btn" class="font-bold hover:underline" style="color: var(--accent-gold);">Logout</button>`;
@@ -190,7 +171,6 @@
                 authNav.innerHTML = `<a href="#login" class="font-bold hover:underline">Member Login</a>`;
             }
 
-            // Route to the correct view
             if (route.startsWith('lesson/')) {
                 const lessonId = route.split('/')[1];
                 AppRenderer.renderLesson(lessonId, AppData.lessons, user);
@@ -202,11 +182,8 @@
             feather.replace();
         }
 
-        // Listen for URL hash changes and run the router
         window.addEventListener('hashchange', AppRouter);
-        // Run the router on initial page load
         document.addEventListener('DOMContentLoaded', AppRouter);
-
     </script>
 </body>
 </html>
